@@ -19,6 +19,7 @@
             <AppBarButton Icon="Refresh" Label="Обновить" Command="{x:Bind ViewModel.LoadDataCommand}"/>
             <AppBarButton Icon="Account" Label="{x:Bind ViewModel.CurrentUser.FullName, Mode=OneWay}"/>
             <AppBarButton Icon="Remove" Label="Выход" Command="{x:Bind ViewModel.LogoutCommand}"/>
+        
         </CommandBar>
 
         <!-- Основное содержимое -->
