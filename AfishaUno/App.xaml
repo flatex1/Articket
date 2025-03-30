@@ -1,0 +1,27 @@
+<Application x:Class="AfishaUno.App"
+       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       xmlns:local="using:AfishaUno"
+       xmlns:converters="using:AfishaUno.Presentation.Converters">
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <!-- Load WinUI resources -->
+        <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+        <!-- Load Uno.UI.Toolkit resources -->
+        <ToolkitResources xmlns="using:Uno.Toolkit.UI" />
+      </ResourceDictionary.MergedDictionaries>
+
+      <!-- Add resources here -->
+
+      <!-- Конвертеры -->
+      <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+      <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
+      <converters:DateToStringConverter x:Key="DateToStringConverter" />
+      <converters:TimeToStringConverter x:Key="TimeToStringConverter" />
+      <converters:AdminRoleToVisibilityConverter x:Key="AdminRoleToVisibilityConverter" />
+    </ResourceDictionary>
+  </Application.Resources>
+
+</Application>
