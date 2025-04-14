@@ -31,7 +31,11 @@ namespace AfishaUno.Models
         public DateTime UpdatedAt { get; set; }
 
         // Навигационные свойства для соединения с другими объектами
+        // Добавляем атрибут [JsonIgnore], чтобы исключить их из сериализации
+        [JsonIgnore]
         public Performance Performance { get; set; }
+
+        [JsonIgnore]
         public Hall Hall { get; set; }
 
         public override bool Equals(object obj)

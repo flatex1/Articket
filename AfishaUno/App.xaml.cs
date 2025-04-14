@@ -1,13 +1,7 @@
-using Uno.Resizetizer;
-using System;
-using Microsoft.UI.Xaml;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using AfishaUno.Services;
-using AfishaUno.Presentation.ViewModels;
 using AfishaUno.Presentation.Pages;
-using System.IO;
-using System.Reflection;
+using AfishaUno.Presentation.ViewModels;
+using AfishaUno.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace AfishaUno;
 public partial class App : Application
@@ -33,7 +27,7 @@ public partial class App : Application
     /// <summary>
     /// Gets the current app as a strongly typed reference.
     /// </summary>
-    public new static App Current => (App)Application.Current;
+    public static new App Current => (App)Application.Current;
 
     /// <summary>
     /// Gets the service provider.
@@ -58,7 +52,10 @@ public partial class App : Application
         var services = new ServiceCollection();
 
         // Регистрация сервисов
-        services.AddSingleton<IConfiguration>(_configuration);
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", optional: true)
+            .Build();
+        services.AddSingleton<IConfiguration>(configuration);
         services.AddSingleton<ISupabaseService, SupabaseService>();
         services.AddSingleton<INavigationService, NavigationService>();
 
@@ -66,6 +63,9 @@ public partial class App : Application
         services.AddTransient<LoginViewModel>();
         services.AddTransient<MainViewModel>();
         services.AddTransient<RegisterViewModel>();
+        services.AddTransient<SelectSeatViewModel>();
+        services.AddTransient<AddPerformanceViewModel>();
+        services.AddTransient<AddScheduleViewModel>();
 
         _serviceProvider = services.BuildServiceProvider();
     }
@@ -88,6 +88,11 @@ public partial class App : Application
         navigationService.Configure("LoginPage", typeof(LoginPage));
         navigationService.Configure("MainPage", typeof(MainPage));
         navigationService.Configure("RegisterPage", typeof(RegisterPage));
+        navigationService.Configure("SelectSeatPage", typeof(SelectSeatPage));
+        navigationService.Configure("AddPerformancePage", typeof(AddPerformancePage));
+        navigationService.Configure("AddSchedulePage", typeof(AddSchedulePage));
+        // Закомментируем функциональность, которая еще не реализована
+        // navigationService.Configure("PerformanceDetailPage", typeof(PerformanceDetailPage));
 
         // По умолчанию открываем страницу авторизации
         navigationService.NavigateTo("LoginPage");

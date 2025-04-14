@@ -1,5 +1,6 @@
 ﻿<Page
     x:Class="AfishaUno.Presentation.Pages.MainPage"
+    x:Name="mainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:AfishaUno.Presentation.Pages"
@@ -17,6 +18,8 @@
         <!-- Верхняя панель -->
         <CommandBar Grid.Row="0" DefaultLabelPosition="Right">
             <AppBarButton Icon="Refresh" Label="Обновить" Command="{x:Bind ViewModel.LoadDataCommand}"/>
+            <AppBarButton Icon="Add" Label="Добавить спектакль" Command="{x:Bind ViewModel.NavigateToAddPerformanceCommand}"/>
+            <AppBarButton Icon="Calendar" Label="Добавить расписание" Command="{x:Bind ViewModel.NavigateToAddScheduleCommand}"/>
             <AppBarButton Icon="Account" Label="{x:Bind ViewModel.CurrentUser.FullName, Mode=OneWay}"/>
             <AppBarButton Icon="Remove" Label="Выход" Command="{x:Bind ViewModel.LogoutCommand}"/>
         
@@ -100,7 +103,7 @@
                                       SelectionMode="Single">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid Margin="0,8" Tapped="Schedule_Tapped">
+                                        <Grid Margin="0,8">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
@@ -135,6 +138,13 @@
                                                        Text="{Binding BasePrice}" 
                                                        Style="{StaticResource BodyTextBlockStyle}"
                                                        VerticalAlignment="Center"/>
+
+                                            <!-- Добавим кнопку для выбора места -->
+                                            <Button Grid.Column="2" 
+                                                    Content="Выбрать место" 
+                                                    Command="{Binding ElementName=mainPage, Path=ViewModel.NavigateToSelectSeatCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Margin="10,0,0,0"/>
                                         </Grid>
                                     </DataTemplate>
                                 </ListView.ItemTemplate>

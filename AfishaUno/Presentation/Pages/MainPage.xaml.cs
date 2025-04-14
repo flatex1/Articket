@@ -1,5 +1,6 @@
 using AfishaUno.Models;
 using AfishaUno.Presentation.ViewModels;
+using AfishaUno.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -27,14 +28,6 @@ namespace AfishaUno.Presentation.Pages
             if (sender is FrameworkElement element && element.DataContext is Performance performance)
             {
                 ViewModel.NavigateToPerformanceDetails(performance);
-            }
-        }
-
-        private void Schedule_Tapped(object sender, RoutedEventArgs e)
-        {
-            if (sender is FrameworkElement element && element.DataContext is Schedule schedule)
-            {
-                ViewModel.NavigateToScheduleDetails(schedule);
             }
         }
     }

@@ -24,6 +24,7 @@ namespace AfishaUno.Models
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; }
 
+
         public override bool Equals(object obj)
         {
             return obj is Hall hall &&

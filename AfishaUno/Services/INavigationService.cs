@@ -10,5 +10,7 @@ namespace AfishaUno.Services
         void NavigateTo(string pageKey);
         void NavigateTo(string pageKey, object parameter);
         void GoBack();
+        bool CanGoBack();
+        Frame Frame { get; set; }
     }
 } 

@@ -1,13 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Supabase;
-using Supabase.Postgrest.Models;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using SupabaseClient = Supabase.Client;
-using AfishaUno.Models;
 
 namespace AfishaUno.Services;
 
@@ -42,7 +36,7 @@ public class SupabaseService : ISupabaseService
         try
         {
             var session = await _client.Auth.SignIn(email, password);
-            
+
             if (session?.User == null)
                 return false;
 
@@ -66,7 +60,7 @@ public class SupabaseService : ISupabaseService
                 };
 
                 var response = await _client.From<User>().Insert(newUser);
-                
+
                 if (response?.Models?.Count > 0)
                 {
                     _currentUser = response.Models[0];
@@ -124,20 +118,20 @@ public class SupabaseService : ISupabaseService
         {
             // Проверяем, есть ли уже пользователи в системе
             int userCount = await GetUserCountAsync();
-            
+
             if (userCount > 0)
                 return false;
 
             // Создаём пользователя в Supabase Auth
             var authResponse = await _client.Auth.SignUp(email, password);
-            
+
             if (authResponse?.User == null)
                 return false;
 
             // Получаем UUID пользователя из auth
             string authUserId = authResponse.User.Id;
             Guid userId = Guid.Parse(authUserId);
-            
+
             // Создаем пользователя с ролью админа
             var user = new User
             {
@@ -148,9 +142,9 @@ public class SupabaseService : ISupabaseService
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
-            
+
             var response = await _client.From<User>().Insert(user);
-            
+
             if (response?.Models?.Count > 0)
             {
                 Trace.WriteLine($"Администратор успешно создан: {email}");
@@ -187,7 +181,7 @@ public class SupabaseService : ISupabaseService
             // Получаем UUID пользователя из auth
             string authUserId = authResponse.User.Id;
             Guid userId = Guid.Parse(authUserId);
-            
+
             var user = new User
             {
                 Id = userId,
@@ -197,15 +191,15 @@ public class SupabaseService : ISupabaseService
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
-            
+
             var response = await _client.From<User>().Insert(user);
-            
+
             if (response?.Models?.Count > 0)
             {
                 Trace.WriteLine($"Пользователь успешно создан: {email}, роль: {role}");
                 return response.Models.FirstOrDefault();
             }
-            
+
             return null;
         }
         catch (Exception ex)
@@ -238,12 +232,69 @@ public class SupabaseService : ISupabaseService
     {
         try
         {
+            Trace.WriteLine($"[CreatePerformanceAsync] Начало создания спектакля с Id={performance.Id}, Title='{performance.Title}'");
+
+            // Проверяем права пользователя
+            if (_currentUser == null)
+            {
+                Trace.WriteLine("[CreatePerformanceAsync] Ошибка: Пользователь не авторизован");
+                return null;
+            }
+
+            // Проверяем корректность данных
+            if (performance == null || string.IsNullOrEmpty(performance.Title))
+            {
+                Trace.WriteLine("[CreatePerformanceAsync] Ошибка: Некорректные данные спектакля");
+                return null;
+            }
+
+            // Логируем детали запроса
+            Trace.WriteLine($"[CreatePerformanceAsync] Отправка запроса в Supabase: {performance.Id}, '{performance.Title}', Duration={performance.Duration}");
+
             var response = await _client.From<Performance>().Insert(performance);
-            return response.Models.FirstOrDefault();
+
+            if (response == null)
+            {
+                Trace.WriteLine("[CreatePerformanceAsync] Ошибка: Ответ от API равен null");
+                return null;
+            }
+
+            Trace.WriteLine($"[CreatePerformanceAsync] Получен ответ от API: Count={response.Models?.Count ?? 0}");
+
+            if (response.Models?.Count > 0)
+            {
+                var createdPerformance = response.Models.FirstOrDefault();
+                Trace.WriteLine($"[CreatePerformanceAsync] Спектакль успешно создан: Id={createdPerformance.Id}, Title='{createdPerformance.Title}'");
+                return createdPerformance;
+            }
+
+            Trace.WriteLine("[CreatePerformanceAsync] Ошибка: В ответе отсутствуют модели");
+            return null;
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"Ошибка создания спектакля: {ex.Message}");
+            Trace.WriteLine($"[CreatePerformanceAsync] Исключение: {ex.Message}");
+            Trace.WriteLine($"[CreatePerformanceAsync] StackTrace: {ex.StackTrace}");
+
+            if (ex.InnerException != null)
+            {
+                Trace.WriteLine($"[CreatePerformanceAsync] InnerException: {ex.InnerException.Message}");
+                Trace.WriteLine($"[CreatePerformanceAsync] InnerException StackTrace: {ex.InnerException.StackTrace}");
+            }
+
+            // Логируем детали объекта performance
+            if (performance != null)
+            {
+                Trace.WriteLine($"[CreatePerformanceAsync] Детали объекта Performance:");
+                Trace.WriteLine($"  - Id: {performance.Id}");
+                Trace.WriteLine($"  - Title: '{performance.Title}'");
+                Trace.WriteLine($"  - Description: '{(performance.Description?.Length > 50 ? performance.Description.Substring(0, 50) + "..." : performance.Description)}'");
+                Trace.WriteLine($"  - Duration: {performance.Duration}");
+                Trace.WriteLine($"  - PosterUrl: '{performance.PosterUrl}'");
+                Trace.WriteLine($"  - CreatedAt: {performance.CreatedAt}");
+                Trace.WriteLine($"  - UpdatedAt: {performance.UpdatedAt}");
+            }
+
             return null;
         }
     }
@@ -331,13 +382,13 @@ public class SupabaseService : ISupabaseService
         try
         {
             var response = await _client.From<Ticket>().Insert(ticket);
-            
+
             if (response?.Models?.Count > 0)
             {
                 Trace.WriteLine($"Билет успешно создан: {ticket.Id}");
                 return response.Models.FirstOrDefault();
             }
-            
+
             return null;
         }
         catch (Exception ex)
@@ -358,13 +409,13 @@ public class SupabaseService : ISupabaseService
             var response = await _client.From<Ticket>()
                 .Where(t => t.Id == ticket.Id)
                 .Update(ticket);
-                
+
             if (response?.Models?.Count > 0)
             {
                 Trace.WriteLine($"Билет успешно обновлен: {ticket.Id}");
                 return response.Models.FirstOrDefault();
             }
-            
+
             return null;
         }
         catch (Exception ex)
@@ -404,6 +455,190 @@ public class SupabaseService : ISupabaseService
         catch (Exception ex)
         {
             Trace.WriteLine($"Ошибка сброса базы данных: {ex.Message}");
+            return false;
+        }
+    }
+
+    // Детали расписания
+    public async Task<Schedule> GetScheduleDetailsAsync(Guid scheduleId)
+    {
+        try
+        {
+            var response = await _client.From<Schedule>()
+                .Where(s => s.Id == scheduleId)
+                .Get();
+
+            if (response?.Models?.Count > 0)
+            {
+                var schedule = response.Models.First();
+
+                // Загружаем связанные данные
+                schedule.Performance = await _client
+                    .From<Performance>()
+                    .Where(p => p.Id == schedule.PerformanceId)
+                    .Single();
+
+                schedule.Hall = await _client
+                    .From<Hall>()
+                    .Where(h => h.Id == schedule.HallId)
+                    .Single();
+
+                return schedule;
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"Ошибка получения расписания: {ex.Message}");
+            return null;
+        }
+    }
+
+    // Доступные места
+    public async Task<List<Seat>> GetAvailableSeatsAsync(Guid scheduleId)
+    {
+        try
+        {
+            // Получаем информацию о расписании
+            var schedule = await GetScheduleDetailsAsync(scheduleId);
+            if (schedule == null)
+                return new List<Seat>();
+
+            // Получаем все места в зале
+            var allSeats = await GetSeatsAsync(schedule.HallId);
+
+            // Получаем все билеты для этого сеанса
+            var tickets = await GetTicketsAsync(scheduleId);
+
+            // Отфильтровываем занятые места
+            var soldSeatIds = tickets
+                .Where(t => t.Status is TicketStatuses.Sold or TicketStatuses.Reserved)
+                .Select(t => t.SeatId)
+                .ToHashSet();
+
+            return allSeats.Where(s => !soldSeatIds.Contains(s.Id)).ToList();
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"Ошибка получения доступных мест: {ex.Message}");
+            return new List<Seat>();
+        }
+    }
+
+    // Продажа билета
+    public async Task<Ticket> SellTicketAsync(Ticket ticket)
+    {
+        try
+        {
+            // Дополняем билет необходимыми данными
+            ticket.CreatedAt = DateTime.UtcNow;
+            ticket.UpdatedAt = DateTime.UtcNow;
+
+            // Заглушка для QR-кода (TODO: реализовать генерацию QR-кода)
+            ticket.QrCode = $"TICKET-{Guid.NewGuid()}";
+
+            // Сохраняем билет
+            var response = await _client.From<Ticket>().Insert(ticket);
+
+            if (response?.Models?.Count > 0)
+            {
+                Trace.WriteLine($"Билет успешно продан: {ticket.Id}");
+                return response.Models.First();
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"Ошибка продажи билета: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Trace.WriteLine($"Внутренняя ошибка: {ex.InnerException.Message}");
+            }
+            return null;
+        }
+    }
+
+    public async Task<Hall> CreateHallAsync(Hall hall)
+    {
+        try
+        {
+            Trace.WriteLine($"[CreateHallAsync] Создание зала: {hall.Name}");
+            var response = await _client.From<Hall>().Insert(hall);
+
+            if (response?.Models?.Count > 0)
+            {
+                Trace.WriteLine($"[CreateHallAsync] Зал успешно создан: Id={response.Models[0].Id}");
+                return response.Models[0];
+            }
+
+            Trace.WriteLine("[CreateHallAsync] Ошибка: Результат равен null");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[CreateHallAsync] Исключение: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<Schedule> CreateScheduleAsync(Schedule schedule)
+    {
+        try
+        {
+            Trace.WriteLine($"[CreateScheduleAsync] Создание расписания для спектакля {schedule.PerformanceId}");
+
+            schedule.Performance = null;
+            schedule.Hall = null;
+
+            var response = await _client.From<Schedule>().Insert(schedule);
+
+            if (response?.Models?.Count > 0)
+            {
+                Trace.WriteLine($"[CreateScheduleAsync] Расписание успешно создано: Id={response.Models[0].Id}");
+                return response.Models[0];
+            }
+
+            Trace.WriteLine("[CreateScheduleAsync] Ошибка: Результат равен null");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[CreateScheduleAsync] Исключение: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<bool> CreateSeatsAsync(List<Seat> seats)
+    {
+        try
+        {
+            Trace.WriteLine($"[CreateSeatsAsync] Создание {seats.Count} мест");
+
+            // Создаем места пакетами по 50, чтобы избежать проблем с большими пакетами данных
+            const int batchSize = 50;
+
+            for (int i = 0; i < seats.Count; i += batchSize)
+            {
+                var batch = seats.Skip(i).Take(batchSize).ToList();
+                Trace.WriteLine($"[CreateSeatsAsync] Обработка пакета {i / batchSize + 1}: {batch.Count} мест");
+
+                var response = await _client.From<Seat>().Insert(batch);
+
+                if (response == null || response.Models.Count == 0)
+                {
+                    Trace.WriteLine($"[CreateSeatsAsync] Ошибка при создании пакета {i / batchSize + 1}");
+                    return false;
+                }
+            }
+
+            Trace.WriteLine($"[CreateSeatsAsync] Успешно создано {seats.Count} мест");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[CreateSeatsAsync] Исключение: {ex.Message}");
             return false;
         }
     }

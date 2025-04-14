@@ -24,5 +24,11 @@ namespace AfishaUno.Services
         Task<List<DiscountCategory>> GetDiscountCategoriesAsync();
         Task<int> GetUserCountAsync();
         Task<bool> ResetDatabaseAsync();
+        Task<Schedule> GetScheduleDetailsAsync(Guid scheduleId);
+        Task<List<Seat>> GetAvailableSeatsAsync(Guid scheduleId);
+        Task<Ticket> SellTicketAsync(Ticket ticket);
+        Task<Hall> CreateHallAsync(Hall hall);
+        Task<Schedule> CreateScheduleAsync(Schedule schedule);
+        Task<bool> CreateSeatsAsync(List<Seat> seats);
     }
 } 

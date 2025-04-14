@@ -9,6 +9,12 @@ namespace AfishaUno.Services
         private Frame _frame;
         private readonly Dictionary<string, Type> _pages = new Dictionary<string, Type>();
 
+        public Frame Frame 
+        { 
+            get => _frame;
+            set => _frame = value;
+        }
+
         public void Initialize(Frame frame)
         {
             _frame = frame;
@@ -45,6 +51,11 @@ namespace AfishaUno.Services
             {
                 _frame.GoBack();
             }
+        }
+
+        public bool CanGoBack()
+        {
+            return _frame != null && _frame.CanGoBack;
         }
     }
 } 

@@ -1,4 +1,5 @@
 using AfishaUno.Models;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
 using System;
@@ -74,6 +75,30 @@ namespace AfishaUno.Presentation.Converters
                 return Visibility.Visible;
             }
             return Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class SeatStatusToColorConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            string status = value as string;
+            switch (status)
+            {
+                case "Available":
+                    return new SolidColorBrush(Colors.LightGreen);
+                case "Selected":
+                    return new SolidColorBrush(Colors.Yellow);
+                case "Sold":
+                    return new SolidColorBrush(Colors.Red);
+                default:
+                    return new SolidColorBrush(Colors.Gray);
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)

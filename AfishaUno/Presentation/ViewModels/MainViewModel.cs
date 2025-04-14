@@ -87,5 +87,23 @@ namespace AfishaUno.Presentation.ViewModels
         {
             _navigationService.NavigateTo("ScheduleDetailPage", schedule);
         }
+
+        [RelayCommand]
+        public void NavigateToAddPerformance()
+        {
+            _navigationService.NavigateTo("AddPerformancePage");
+        }
+
+        [RelayCommand]
+        public void NavigateToSelectSeat(Schedule schedule)
+        {
+            _navigationService.NavigateTo("SelectSeatPage", schedule.Id);
+        }
+
+        [RelayCommand]
+        public void NavigateToAddSchedule()
+        {
+            _navigationService.NavigateTo("AddSchedulePage");
+        }
     }
 } 

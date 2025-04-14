@@ -1,5 +1,3 @@
-using System;
-using System.Text.Json.Serialization;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
