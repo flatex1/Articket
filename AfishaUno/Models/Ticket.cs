@@ -36,6 +36,12 @@ namespace AfishaUno.Models
         [Column("discount_category_id")]
         public Guid? DiscountCategoryId { get; set; }
 
+        [Column("customer_id")]
+        public Guid? CustomerId { get; set; }
+
+        [Column("loyalty_card_id")]
+        public Guid? LoyaltyCardId { get; set; }
+
         [Column("reserved_until")]
         public DateTime? ReservedUntil { get; set; }
 
@@ -56,6 +62,8 @@ namespace AfishaUno.Models
         public Seat Seat { get; set; }
         public DiscountCategory DiscountCategory { get; set; }
         public User CreatedByUser { get; set; }
+        public Customer Customer { get; set; }
+        public LoyaltyCard LoyaltyCard { get; set; }
 
         public override bool Equals(object obj)
         {

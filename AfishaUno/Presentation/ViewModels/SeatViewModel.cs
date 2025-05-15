@@ -1,30 +1,40 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace AfishaUno.Presentation.ViewModels
 {
-    public partial class SeatViewModel : ObservableObject
+    [ObservableObject]
+    public partial class SeatViewModel
     {
         private readonly Seat _seat;
+
+        [ObservableProperty]
+        private double _x;
+
+        [ObservableProperty]
+        private double _y;
+
+        [ObservableProperty]
+        private double _absoluteX;
+
+        [ObservableProperty]
+        private double _absoluteY;
+
+        [ObservableProperty]
         private string _status;
 
-        public SeatViewModel(Seat seat)
-        {
-            _seat = seat;
-            _status = "Available";
-        }
-
         public Guid Id => _seat.Id;
-        public Guid HallId => _seat.HallId;
         public int RowNumber => _seat.RowNumber;
         public int SeatNumber => _seat.SeatNumber;
         public string Category => _seat.Category;
 
-        // Координаты для отображения в UI
-        public double X { get; set; }
-        public double Y { get; set; }
-
-        public string Status
+        public SeatViewModel(Seat seat)
         {
-            get => _status;
-            set => SetProperty(ref _status, value);
+            _seat = seat;
+            Status = "Available";
+        }
+
+        public SeatViewModel()
+        {
         }
     }
 }

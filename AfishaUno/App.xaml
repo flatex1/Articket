@@ -13,14 +13,36 @@
         <ToolkitResources xmlns="using:Uno.Toolkit.UI" />
       </ResourceDictionary.MergedDictionaries>
 
-      <!-- Add resources here -->
+      <!-- Цвета приложения -->
+      <Color x:Key="ApplicationPrimaryColor">#0078D7</Color>
+      <Color x:Key="ApplicationSecondaryColor">#F0F0F0</Color>
+      <Color x:Key="ApplicationBackgroundColor">#FFFFFF</Color>
+      <Color x:Key="ApplicationAccentColor">#0078D7</Color>
+      <Color x:Key="ApplicationTextPrimaryColor">#333333</Color>
+      <Color x:Key="ApplicationTextSecondaryColor">#666666</Color>
+      
+      <!-- Кисти приложения -->
+      <SolidColorBrush x:Key="ApplicationPrimaryBrush" Color="{StaticResource ApplicationPrimaryColor}"/>
+      <SolidColorBrush x:Key="ApplicationSecondaryBrush" Color="{StaticResource ApplicationSecondaryColor}"/>
+      <SolidColorBrush x:Key="ApplicationBackgroundBrush" Color="{StaticResource ApplicationBackgroundColor}"/>
+      <SolidColorBrush x:Key="ApplicationAccentBrush" Color="{StaticResource ApplicationAccentColor}"/>
+      <SolidColorBrush x:Key="ApplicationTextPrimaryBrush" Color="{StaticResource ApplicationTextPrimaryColor}"/>
+      <SolidColorBrush x:Key="ApplicationTextSecondaryBrush" Color="{StaticResource ApplicationTextSecondaryColor}"/>
 
       <!-- Конвертеры -->
       <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
       <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
+      <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
       <converters:DateToStringConverter x:Key="DateToStringConverter" />
       <converters:TimeToStringConverter x:Key="TimeToStringConverter" />
       <converters:AdminRoleToVisibilityConverter x:Key="AdminRoleToVisibilityConverter" />
+
+      <Style x:Key="SubtitleTextBlockStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource ApplicationTextSecondaryBrush}"/>
+        <Setter Property="Margin" Value="0,0,0,10"/>
+      </Style>
     </ResourceDictionary>
   </Application.Resources>
 

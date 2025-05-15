@@ -1,13 +1,19 @@
 ﻿<Page
     x:Class="AfishaUno.Presentation.Pages.MainPage"
-    x:Name="mainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:AfishaUno.Presentation.Pages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewmodels="using:AfishaUno.Presentation.ViewModels"
+    xmlns:converters="using:AfishaUno.Presentation.Converters"
     mc:Ignorable="d"
+    x:Name="Page"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Page.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -15,176 +21,105 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Верхняя панель -->
-        <CommandBar Grid.Row="0" DefaultLabelPosition="Right">
-            <AppBarButton Icon="Refresh" Label="Обновить" Command="{x:Bind ViewModel.LoadDataCommand}"/>
-            <AppBarButton Icon="Add" Label="Добавить спектакль" Command="{x:Bind ViewModel.NavigateToAddPerformanceCommand}"/>
-            <AppBarButton Icon="Calendar" Label="Добавить расписание" Command="{x:Bind ViewModel.NavigateToAddScheduleCommand}"/>
-            <AppBarButton Icon="Account" Label="{x:Bind ViewModel.CurrentUser.FullName, Mode=OneWay}"/>
-            <AppBarButton Icon="Remove" Label="Выход" Command="{x:Bind ViewModel.LogoutCommand}"/>
-        
-        </CommandBar>
+        <!-- Верхняя панель с заголовком и информацией о пользователе -->
+        <Grid Grid.Row="0" Background="{ThemeResource ApplicationSecondaryBrush}" Padding="12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
 
-        <!-- Основное содержимое -->
-        <Grid Grid.Row="1" Padding="12">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+            <TextBlock Text="ARTICKET" 
+                     Grid.Column="0"
+                     FontSize="20" 
+                     FontWeight="Bold" 
+                     Margin="8,0,0,0"
+                     VerticalAlignment="Center"/>
             
-            <!-- Заголовок -->
-            <TextBlock Text="Articket - Система театральной кассы" 
-                       Style="{StaticResource TitleTextBlockStyle}"
-                       Margin="0,0,0,12"/>
-
-            <!-- Содержимое в TabView -->
-            <TabView Grid.Row="1">
-                <TabView.TabItems>
-                    <!-- Вкладка Спектакли -->
-                    <TabViewItem Header="Спектакли">
-                        <Grid>
-                            <ListView ItemsSource="{x:Bind ViewModel.Performances, Mode=OneWay}"
-                                      SelectionMode="Single">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid Margin="0,8" Tapped="Performance_Tapped">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <!-- Изображение (постер) -->
-                                            <Image Source="{Binding PosterUrl}" 
-                                                   Width="100" 
-                                                   Height="150"
-                                                   Stretch="UniformToFill"/>
-
-                                            <!-- Информация о спектакле -->
-                                            <StackPanel Grid.Column="1" Margin="12,0,0,0">
-                                                <TextBlock Text="{Binding Title}" 
-                                                           Style="{StaticResource SubtitleTextBlockStyle}"/>
-                                                <TextBlock Text="{Binding Description}" 
-                                                           TextWrapping="Wrap"
-                                                           MaxLines="2"
-                                                           TextTrimming="CharacterEllipsis"
-                                                           Style="{StaticResource BodyTextBlockStyle}"
-                                                           Opacity="0.6"
-                                                           Margin="0,4,0,0"/>
-                                                <TextBlock Text="{Binding Duration}" 
-                                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                                           Margin="0,8,0,0"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-
-                            <!-- Прогресс загрузки -->
-                            <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
-                                          Width="50"
-                                          Height="50"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
-
-                            <!-- Сообщение об ошибке -->
-                            <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
-                                       Foreground="Red"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       TextWrapping="Wrap"
-                                       Visibility="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}"/>
-                        </Grid>
-                    </TabViewItem>
-
-                    <!-- Вкладка Расписание -->
-                    <TabViewItem Header="Расписание">
-                        <Grid>
-                            <ListView ItemsSource="{x:Bind ViewModel.Schedules, Mode=OneWay}"
-                                      SelectionMode="Single">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid Margin="0,8">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <!-- Дата и время -->
-                                            <StackPanel Grid.Column="0" 
+            <!-- Информация о пользователе -->
+            <StackPanel Grid.Column="2" 
+                      Orientation="Horizontal" 
+                      VerticalAlignment="Center"
+                      Visibility="{x:Bind ViewModel.IsLoggedIn, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TextBlock Text="{x:Bind ViewModel.UserName, Mode=OneWay}" 
+                         VerticalAlignment="Center"
+                         Margin="0,0,8,0"/>
+                <TextBlock Text="{x:Bind ViewModel.UserRole, Mode=OneWay}" 
                                                         VerticalAlignment="Center"
-                                                        HorizontalAlignment="Center"
-                                                        Width="80">
-                                                <TextBlock Text="{Binding StartTime, Converter={StaticResource DateToStringConverter}}" 
-                                                           Style="{StaticResource BodyTextBlockStyle}"
-                                                           HorizontalAlignment="Center"/>
-                                                <TextBlock Text="{Binding StartTime, Converter={StaticResource TimeToStringConverter}}" 
-                                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                                           HorizontalAlignment="Center"
-                                                           Margin="0,4,0,0"/>
+                         Opacity="0.7"
+                         Margin="0,0,8,0"/>
+                <Button Content="Выход" 
+                      Command="{x:Bind ViewModel.LogoutCommand}"
+                      Style="{ThemeResource ButtonRevealStyle}"/>
                                             </StackPanel>
+        </Grid>
+        
+        <SplitView Grid.Row="1" 
+                 IsPaneOpen="True" 
+                 DisplayMode="CompactInline"
+                 CompactPaneLength="48"
+                 OpenPaneLength="240">
+            <!-- Панель навигации -->
+            <SplitView.Pane>
+                <ListView ItemsSource="{x:Bind ViewModel.MenuItems, Mode=OneWay}" 
+                        SelectionMode="Single"
+                        Background="{ThemeResource ApplicationSecondaryBrush}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="viewmodels:MenuItem">
+                            <Grid Height="48">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="48" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
 
-                                            <!-- Информация о спектакле -->
-                                            <StackPanel Grid.Column="1" Margin="12,0">
-                                                <TextBlock Text="{Binding Performance.Title}" 
-                                                           Style="{StaticResource SubtitleTextBlockStyle}"/>
-                                                <TextBlock Text="{Binding Hall.Name}" 
-                                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                                           Margin="0,4,0,0"/>
-                                            </StackPanel>
-
-                                            <!-- Цена -->
-                                            <TextBlock Grid.Column="2" 
-                                                       Text="{Binding BasePrice}" 
-                                                       Style="{StaticResource BodyTextBlockStyle}"
+                                <!-- Перемещаем Grid.ContextFlyout перед другими элементами содержимого -->
+                                <Grid.ContextFlyout>
+                                    <MenuFlyout />
+                                </Grid.ContextFlyout>
+                                
+                                <TextBlock Text="{x:Bind Icon}" 
+                                         FontFamily="Segoe MDL2 Assets" 
+                                         FontSize="16" 
+                                         VerticalAlignment="Center" 
+                                         HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" 
+                                         Text="{x:Bind Title}" 
                                                        VerticalAlignment="Center"/>
-
-                                            <!-- Добавим кнопку для выбора места -->
-                                            <Button Grid.Column="2" 
-                                                    Content="Выбрать место" 
-                                                    Command="{Binding ElementName=mainPage, Path=ViewModel.NavigateToSelectSeatCommand}"
-                                                    CommandParameter="{Binding}"
-                                                    Margin="10,0,0,0"/>
+                                
+                                <!-- Обработчик нажатия на пункт меню -->
+                                <Button Command="{Binding ElementName=Page, Path=ViewModel.NavigateCommand}" 
+                                      CommandParameter="{x:Bind PageName}" 
+                                      Background="Transparent"
+                                      BorderThickness="0"
+                                      Margin="0"
+                                      Padding="0"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Stretch"
+                                      Width="{Binding ActualWidth, ElementName=Parent, Mode=OneWay}"
+                                      Height="{Binding ActualHeight, ElementName=Parent, Mode=OneWay}">
+                                    <Button.Resources>
+                                        <ResourceDictionary>
+                                            <ResourceDictionary.ThemeDictionaries>
+                                                <ResourceDictionary x:Key="Light">
+                                                    <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="{ThemeResource SystemAccentColor}"/>
+                                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="Transparent"/>
+                                                </ResourceDictionary>
+                                                <ResourceDictionary x:Key="Dark">
+                                                    <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="{ThemeResource SystemAccentColor}"/>
+                                                    <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="Transparent"/>
+                                                </ResourceDictionary>
+                                            </ResourceDictionary.ThemeDictionaries>
+                                        </ResourceDictionary>
+                                    </Button.Resources>
+                                </Button>
                                         </Grid>
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
                             </ListView>
+            </SplitView.Pane>
 
-                            <!-- Прогресс загрузки -->
-                            <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
-                                          Width="50"
-                                          Height="50"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
-
-                            <!-- Сообщение об ошибке -->
-                            <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
-                                       Foreground="Red"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       TextWrapping="Wrap"
-                                       Visibility="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}"/>
-                        </Grid>
-                    </TabViewItem>
-
-                    <!-- Для администратора - управление системой -->
-                    <TabViewItem Header="Управление" 
-                                 Visibility="{x:Bind ViewModel.CurrentUser.Role, Mode=OneWay, Converter={StaticResource AdminRoleToVisibilityConverter}}">
-                        <StackPanel Spacing="16" Padding="12">
-                            <Button Content="Управление пользователями" 
-                                    HorizontalAlignment="Stretch"/>
-                            <Button Content="Добавить спектакль" 
-                                    HorizontalAlignment="Stretch"/>
-                            <Button Content="Управление залами" 
-                                    HorizontalAlignment="Stretch"/>
-                            <Button Content="Управление скидками" 
-                                    HorizontalAlignment="Stretch"/>
-                            <Button Content="Отчеты по продажам" 
-                                    HorizontalAlignment="Stretch"/>
-                        </StackPanel>
-                    </TabViewItem>
-                </TabView.TabItems>
-            </TabView>
-        </Grid>
+            <!-- Область для контента -->
+            <Frame x:Name="ContentFrame" />
+        </SplitView>
     </Grid>
 </Page>

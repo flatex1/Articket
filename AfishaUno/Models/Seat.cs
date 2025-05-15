@@ -24,6 +24,9 @@ namespace AfishaUno.Models
         [Column("category")]
         public string Category { get; set; }
 
+        [Column("status")]
+        public string Status { get; set; } = "Available";
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
 

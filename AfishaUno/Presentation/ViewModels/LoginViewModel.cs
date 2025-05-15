@@ -4,6 +4,8 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AfishaUno.Presentation.ViewModels;
 
@@ -11,6 +13,8 @@ public partial class LoginViewModel : ObservableObject
 {
     private readonly ISupabaseService _supabaseService;
     private readonly INavigationService _navigationService;
+    private readonly ILogger<LoginViewModel> _logger;
+    private readonly IServiceProvider _serviceProvider;
 
     [ObservableProperty]
     private string _email;
@@ -24,41 +28,53 @@ public partial class LoginViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLoading;
 
-    public LoginViewModel(ISupabaseService supabaseService, INavigationService navigationService)
+    public LoginViewModel(ISupabaseService supabaseService, INavigationService navigationService, ILogger<LoginViewModel> logger, IServiceProvider serviceProvider)
     {
         _supabaseService = supabaseService;
         _navigationService = navigationService;
+        _logger = logger;
+        _serviceProvider = serviceProvider;
     }
 
     [RelayCommand]
     private async Task LoginAsync()
     {
-        if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
-        {
-            ErrorMessage = "Введите email и пароль";
-            return;
-        }
-
         try
         {
             IsLoading = true;
             ErrorMessage = string.Empty;
 
-            var success = await _supabaseService.LoginAsync(Email, Password);
-
-            if (success)
+            if (string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(Password))
             {
-                // Навигация на главную страницу
-                _navigationService.NavigateTo("MainPage");
+                ErrorMessage = "Пожалуйста, введите email и пароль";
+                return;
+            }
+
+            var result = await _supabaseService.LoginAsync(Email, Password);
+
+            if (result)
+            {
+                // Успешный вход - перенаправляем на главную страницу
+                _logger.LogInformation($"Пользователь {Email} успешно вошел в систему");
+                _navigationService.NavigateTo("HomePage");
+                
+                // Обновляем главную модель приложения с информацией о пользователе
+                var mainViewModel = _serviceProvider.GetService<MainViewModel>();
+                mainViewModel?.UpdateUserInfo();
+                
+                var homeViewModel = _serviceProvider.GetService<HomeViewModel>();
+                homeViewModel?.UpdateUserInfo();
             }
             else
             {
                 ErrorMessage = "Неверный email или пароль";
+                _logger.LogWarning($"Неудачная попытка входа для {Email}");
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Ошибка при входе: {ex.Message}";
+            ErrorMessage = $"Ошибка входа: {ex.Message}";
+            _logger.LogError(ex, $"Ошибка входа: {ex.Message}");
         }
         finally
         {

@@ -1,34 +1,35 @@
-using AfishaUno.Models;
 using AfishaUno.Presentation.ViewModels;
-using AfishaUno.Services;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
+using Microsoft.Extensions.Logging;
 
 namespace AfishaUno.Presentation.Pages
 {
     public sealed partial class MainPage : Page
     {
         public MainViewModel ViewModel { get; }
+        private readonly ILogger<MainPage> _logger;
 
         public MainPage()
         {
             this.InitializeComponent();
             ViewModel = App.Current.Services.GetService<MainViewModel>();
+            _logger = App.Current.Services.GetService<ILogger<MainPage>>();
+            
+            var navigationService = App.Current.Services.GetService<Services.INavigationService>();
+            navigationService.Frame = ContentFrame;
+            _logger.LogInformation("NavigationService.Frame установлен на ContentFrame в MainPage");
+            
             Loaded += MainPage_Loaded;
         }
 
         private async void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
             await ViewModel.LoadDataAsync();
-        }
-
-        private void Performance_Tapped(object sender, RoutedEventArgs e)
-        {
-            if (sender is FrameworkElement element && element.DataContext is Performance performance)
+            var navigationService = App.Current.Services.GetService<Services.INavigationService>();
+            if (ContentFrame.Content == null)
             {
-                ViewModel.NavigateToPerformanceDetails(performance);
+                _logger.LogInformation("ContentFrame.Content == null, навигация на LoginPage");
+                navigationService.NavigateTo("LoginPage");
             }
         }
     }
-} 
+}

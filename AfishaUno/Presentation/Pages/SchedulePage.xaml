@@ -1,0 +1,127 @@
+<Page
+    x:Class="AfishaUno.Presentation.Pages.SchedulePage"
+    x:Name="ScheduleRoot"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:AfishaUno.Presentation.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:AfishaUno.Models"
+    xmlns:converters="using:AfishaUno.Presentation.Converters"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+    </Page.Resources>
+
+    <Grid Padding="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Кнопка Назад и индикатор этапов -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <Button Content="Назад" 
+                    Command="{x:Bind ViewModel.CancelCommand}" 
+                    Margin="0,0,20,0"/>
+            <TextBlock Text="Шаг 1 из 3: Выбор спектакля" 
+                     VerticalAlignment="Center"
+                     Style="{StaticResource SubtitleTextBlockStyle}"/>
+        </StackPanel>
+
+        <!-- Заголовок и инструкции -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,20">
+            <TextBlock Text="Продажа билетов" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,8"/>
+            <TextBlock Text="Выберите спектакль из расписания для продажи билетов" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <!-- Список спектаклей в расписании -->
+        <ScrollViewer Grid.Row="2">
+            <ItemsRepeater ItemsSource="{x:Bind ViewModel.Schedules, Mode=OneWay}"
+                         Margin="0,0,0,20">
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="models:Schedule">
+                        <Grid Padding="16" Margin="0,8,0,8" 
+                              Background="{ThemeResource ApplicationSecondaryBrush}" 
+                              BorderBrush="{ThemeResource SystemControlForegroundBaseMediumLowBrush}" 
+                              BorderThickness="1"
+                              CornerRadius="4">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Название спектакля -->
+                            <TextBlock Grid.Row="0" Grid.Column="0"
+                                     Text="{x:Bind Performance.Title}"
+                                     Style="{StaticResource SubtitleTextBlockStyle}"
+                                     Margin="0,0,0,4"/>
+
+                            <!-- Дата и время -->
+                            <TextBlock Grid.Row="1" Grid.Column="0">
+                                <Run Text="Дата и время:"/>
+                                <Run Text="{x:Bind StartTime, Mode=OneWay}"/>
+                            </TextBlock>
+
+                            <!-- Зал -->
+                            <TextBlock Grid.Row="2" Grid.Column="0">
+                                <Run Text="Зал:"/>
+                                <Run Text="{x:Bind Hall.Name, Mode=OneWay}"/>
+                            </TextBlock>
+
+                            <!-- Цена билета -->
+                            <TextBlock Grid.Row="3" Grid.Column="0">
+                                <Run Text="Базовая цена билета:"/>
+                                <Run Text="{x:Bind BasePrice, Mode=OneWay}"/>
+                                <Run Text=" руб."/>
+                            </TextBlock>
+
+                            <!-- Кнопка выбора мест -->
+                            <Button Grid.Row="0" Grid.Column="1" Grid.RowSpan="4"
+                                  Content="Выбрать места"
+                                  Command="{Binding ElementName=ScheduleRoot, Path=ViewModel.SelectSeatsCommand}"
+                                  CommandParameter="{x:Bind Id}"
+                                  VerticalAlignment="Center"
+                                  Margin="8,0,0,0"/>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </ScrollViewer>
+
+        <!-- Пустое состояние, если нет расписания -->
+        <TextBlock Grid.Row="2" 
+                 Text="Расписание пусто. Обратитесь к администратору для добавления сеансов."
+                 HorizontalAlignment="Center" 
+                 VerticalAlignment="Center"
+                 TextWrapping="Wrap"
+                 Visibility="{x:Bind ViewModel.IsEmptySchedule, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+        <!-- Прогресс и ошибки -->
+        <ProgressRing Grid.Row="0" Grid.RowSpan="4"
+                      IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" 
+                      Width="50" Height="50" 
+                      HorizontalAlignment="Center" 
+                      VerticalAlignment="Center"
+                      Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+        <TextBlock Grid.Row="0" Grid.RowSpan="4"
+                 Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" 
+                 Foreground="Red" 
+                 TextWrapping="Wrap"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 Visibility="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}"/>
+    </Grid>
+</Page> 

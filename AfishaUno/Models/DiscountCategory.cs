@@ -1,7 +1,5 @@
-using System;
-using System.Text.Json.Serialization;
-using Supabase.Postgrest.Models;
 using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
 
 namespace AfishaUno.Models
 {
@@ -13,7 +11,7 @@ namespace AfishaUno.Models
         public Guid Id { get; set; }
 
         [Column("name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [Column("discount_percent")]
         public int DiscountPercent { get; set; }
@@ -21,13 +19,16 @@ namespace AfishaUno.Models
         [Column("requires_verification")]
         public bool RequiresVerification { get; set; }
 
+        [Column("description")]
+        public string Description { get; set; } = string.Empty;
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
 
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is DiscountCategory category &&
                    Id.Equals(category.Id);
@@ -38,4 +39,4 @@ namespace AfishaUno.Models
             return HashCode.Combine(Id);
         }
     }
-} 
+}

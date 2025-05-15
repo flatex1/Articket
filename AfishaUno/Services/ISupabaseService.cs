@@ -28,7 +28,17 @@ namespace AfishaUno.Services
         Task<List<Seat>> GetAvailableSeatsAsync(Guid scheduleId);
         Task<Ticket> SellTicketAsync(Ticket ticket);
         Task<Hall> CreateHallAsync(Hall hall);
-        Task<Schedule> CreateScheduleAsync(Schedule schedule);
+        Task<Schedule> CreateScheduleAsync(Guid performanceId, Guid hallId, DateTime startTime, decimal basePrice);
         Task<bool> CreateSeatsAsync(List<Seat> seats);
+        Task<List<Schedule>> GetScheduleWithDetailsAsync();
+        Task<Customer> GetCustomerByIdAsync(Guid customerId);
+        Task<Customer> GetCustomerByPhoneAsync(string phone);
+        Task<Customer> CreateCustomerAsync(Customer customer);
+        Task<Customer> UpdateCustomerAsync(Customer customer);
+        Task<List<LoyaltyCard>> GetLoyaltyCardsAsync(Guid customerId);
+        Task<LoyaltyCard> CreateLoyaltyCardAsync(LoyaltyCard loyaltyCard);
+        Task<bool> AddPointsToLoyaltyCardAsync(Guid cardId, int points);
+        Task<List<Customer>> GetCustomersAsync();
+        Task<List<Customer>> SearchCustomersAsync(string searchTerm);
     }
 } 

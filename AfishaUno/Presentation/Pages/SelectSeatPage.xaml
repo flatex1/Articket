@@ -8,24 +8,38 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewmodels="using:AfishaUno.Presentation.ViewModels"
     xmlns:converters="using:AfishaUno.Presentation.Converters"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls" 
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Page.Resources>
         <converters:SeatStatusToColorConverter x:Key="SeatStatusToColorConverter"/>
         <converters:ObjectToIsNotNullConverter x:Key="ObjectToIsNotNullConverter"/>
+        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </Page.Resources>
 
     <Grid Padding="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Индикатор этапов и кнопка назад -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <Button Content="Назад" 
+                    Command="{x:Bind ViewModel.CancelCommand}" 
+                    Margin="0,0,20,0"/>
+            <TextBlock Text="Шаг 2 из 3: Выбор места" 
+                     VerticalAlignment="Center"
+                     Style="{StaticResource SubtitleTextBlockStyle}"/>
+        </StackPanel>
+
         <!-- Заголовок и информация о спектакле -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+        <StackPanel Grid.Row="1" Margin="0,0,0,20">
             <TextBlock Text="Выбор места" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,10"/>
             <TextBlock Text="{x:Bind ViewModel.Schedule.Performance.Title, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}"/>
             <TextBlock>
@@ -44,7 +58,7 @@
         </StackPanel>
 
         <!-- Легенда -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="20" Margin="0,0,0,20">
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="20" Margin="0,0,0,20">
             <StackPanel Orientation="Horizontal" Spacing="5">
                 <Rectangle Width="20" Height="20" Fill="LightGreen"/>
                 <TextBlock Text="Свободно" VerticalAlignment="Center"/>
@@ -59,57 +73,234 @@
             </StackPanel>
         </StackPanel>
 
-        <!-- Схема зала -->
-        <ScrollViewer Grid.Row="2" ZoomMode="Enabled" MinZoomFactor="0.5" MaxZoomFactor="2.0"
-                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-            <Canvas Width="600" Height="500" Background="#f0f0f0">
-                <!-- Сцена -->
-                <Rectangle Canvas.Left="150" Canvas.Top="10" Width="300" Height="50" Fill="DarkGray"/>
-                <TextBlock Canvas.Left="285" Canvas.Top="25" Text="СЦЕНА" FontWeight="Bold"/>
+        <!-- Места по категориям -->
+        <ScrollViewer Grid.Row="3" 
+                     HorizontalScrollBarVisibility="Auto" 
+                     VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="10">
+                <!-- Балкон -->
+                <Expander Header="БАЛКОН" 
+                         IsExpanded="True" 
+                         Margin="0,0,0,10"
+                         Visibility="{x:Bind ViewModel.BalconySeats.Count, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.BalconySeats, Mode=OneWay}">
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout MinItemWidth="50" 
+                                             MinItemHeight="50"
+                                             ItemsStretch="Uniform" 
+                                             MaximumRowsOrColumns="10" 
+                                             Orientation="Horizontal"/>
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="viewmodels:SeatViewModel">
+                                <Button Width="45" Height="45"
+                                        Margin="3"
+                                        Background="{x:Bind Status, Mode=OneWay, Converter={StaticResource SeatStatusToColorConverter}}"
+                                        Command="{Binding ElementName=SelectSeatRoot, Path=ViewModel.SelectSeatCommand}"
+                                        CommandParameter="{x:Bind}"
+                                        BorderBrush="Black"
+                                        BorderThickness="1"
+                                        CornerRadius="5">
+                                    <StackPanel>
+                                        <TextBlock Text="{x:Bind RowNumber}" 
+                                                 FontSize="10" 
+                                                 HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{x:Bind SeatNumber}" 
+                                                 FontSize="12" 
+                                                 HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </Expander>
 
-                <!-- Места -->
-                <ItemsControl ItemsSource="{x:Bind ViewModel.Seats, Mode=OneWay}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <Canvas/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
+                <!-- Партер -->
+                <Expander Header="ПАРТЕР" 
+                         IsExpanded="True" 
+                         Margin="0,0,0,10"
+                         Visibility="{x:Bind ViewModel.ParterSeats.Count, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.ParterSeats, Mode=OneWay}">
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout MinItemWidth="50" 
+                                             MinItemHeight="50"
+                                             ItemsStretch="Uniform" 
+                                             MaximumRowsOrColumns="10" 
+                                             Orientation="Horizontal"/>
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="viewmodels:SeatViewModel">
+                                <Button Width="45" Height="45"
+                                        Margin="3"
+                                        Background="{x:Bind Status, Mode=OneWay, Converter={StaticResource SeatStatusToColorConverter}}"
+                                        Command="{Binding ElementName=SelectSeatRoot, Path=ViewModel.SelectSeatCommand}"
+                                        CommandParameter="{x:Bind}"
+                                        BorderBrush="Black"
+                                        BorderThickness="1"
+                                        CornerRadius="5">
+                                    <StackPanel>
+                                        <TextBlock Text="{x:Bind RowNumber}" 
+                                                 FontSize="10" 
+                                                 HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{x:Bind SeatNumber}" 
+                                                 FontSize="12" 
+                                                 HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </Expander>
+
+                <!-- Амфитеатр -->
+                <Expander Header="АМФИТЕАТР" 
+                         IsExpanded="True" 
+                         Margin="0,0,0,10"
+                         Visibility="{x:Bind ViewModel.AmphitheaterSeats.Count, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.AmphitheaterSeats, Mode=OneWay}">
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout MinItemWidth="50" 
+                                             MinItemHeight="50"
+                                             ItemsStretch="Uniform" 
+                                             MaximumRowsOrColumns="10" 
+                                             Orientation="Horizontal"/>
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="viewmodels:SeatViewModel">
+                                <Button Width="45" Height="45"
+                                        Margin="3"
+                                        Background="{x:Bind Status, Mode=OneWay, Converter={StaticResource SeatStatusToColorConverter}}"
+                                        Command="{Binding ElementName=SelectSeatRoot, Path=ViewModel.SelectSeatCommand}"
+                                        CommandParameter="{x:Bind}"
+                                        BorderBrush="Black"
+                                        BorderThickness="1"
+                                        CornerRadius="5">
+                                    <StackPanel>
+                                        <TextBlock Text="{x:Bind RowNumber}" 
+                                                 FontSize="10" 
+                                                 HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{x:Bind SeatNumber}" 
+                                                 FontSize="12" 
+                                                 HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </Expander>
+
+                <!-- Левая ложа -->
+                <Expander Header="ЛЕВАЯ ЛОЖА" 
+                         IsExpanded="True" 
+                         Margin="0,0,0,10"
+                         Visibility="{x:Bind ViewModel.LeftBoxSeats.Count, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.LeftBoxSeats, Mode=OneWay}">
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout MinItemWidth="50" 
+                                             MinItemHeight="50"
+                                             ItemsStretch="Uniform" 
+                                             MaximumRowsOrColumns="10" 
+                                             Orientation="Horizontal"/>
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="viewmodels:SeatViewModel">
-                            <Button Width="30" Height="30" 
+                                <Button Width="45" Height="45"
+                                        Margin="3"
                                     Background="{x:Bind Status, Mode=OneWay, Converter={StaticResource SeatStatusToColorConverter}}"
                                     Command="{Binding ElementName=SelectSeatRoot, Path=ViewModel.SelectSeatCommand}"
-                                    CommandParameter="{x:Bind}">
-                                <TextBlock Text="{x:Bind SeatNumber}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        CommandParameter="{x:Bind}"
+                                        BorderBrush="Black"
+                                        BorderThickness="1"
+                                        CornerRadius="5">
+                                    <StackPanel>
+                                        <TextBlock Text="{x:Bind RowNumber}" 
+                                                 FontSize="10" 
+                                                 HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{x:Bind SeatNumber}" 
+                                                 FontSize="12" 
+                                                 HorizontalAlignment="Center"/>
+                                    </StackPanel>
                             </Button>
                         </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                    <ItemsControl.ItemContainerStyle>
-                        <Style TargetType="ContentPresenter">
-                            <Setter Property="Canvas.Left" Value="{Binding X}"/>
-                            <Setter Property="Canvas.Top" Value="{Binding Y}"/>
-                        </Style>
-                    </ItemsControl.ItemContainerStyle>
-                </ItemsControl>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </Expander>
 
-                <!-- Подписи категорий мест -->
-                <TextBlock Canvas.Left="50" Canvas.Top="65" Text="ПАРТЕР" FontWeight="Bold"/>
-                <TextBlock Canvas.Left="50" Canvas.Top="20" Text="БАЛКОН" FontWeight="Bold"/>
-                <TextBlock Canvas.Left="50" Canvas.Top="280" Text="АМФИТЕАТР" FontWeight="Bold"/>
-                <TextBlock Canvas.Left="10" Canvas.Top="100" Text="ЛОЖИ" FontWeight="Bold"/>
-            </Canvas>
+                <!-- Правая ложа -->
+                <Expander Header="ПРАВАЯ ЛОЖА" 
+                         IsExpanded="True" 
+                         Margin="0,0,0,10"
+                         Visibility="{x:Bind ViewModel.RightBoxSeats.Count, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.RightBoxSeats, Mode=OneWay}">
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout MinItemWidth="50" 
+                                             MinItemHeight="50"
+                                             ItemsStretch="Uniform" 
+                                             MaximumRowsOrColumns="10" 
+                                             Orientation="Horizontal"/>
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+                            <DataTemplate x:DataType="viewmodels:SeatViewModel">
+                                <Button Width="45" Height="45"
+                                        Margin="3"
+                                        Background="{x:Bind Status, Mode=OneWay, Converter={StaticResource SeatStatusToColorConverter}}"
+                                        Command="{Binding ElementName=SelectSeatRoot, Path=ViewModel.SelectSeatCommand}"
+                                        CommandParameter="{x:Bind}"
+                                        BorderBrush="Black"
+                                        BorderThickness="1"
+                                        CornerRadius="5">
+                                    <StackPanel>
+                                        <TextBlock Text="{x:Bind RowNumber}" 
+                                                 FontSize="10" 
+                                                 HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{x:Bind SeatNumber}" 
+                                                 FontSize="12" 
+                                                 HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </Expander>
+            </StackPanel>
         </ScrollViewer>
 
         <!-- Панель действий -->
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="Назад" Command="{x:Bind ViewModel.CancelCommand}" Margin="0,0,10,0"/>
+        <Grid Grid.Row="4" Margin="0,20,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Информация о выбранном месте -->
+            <StackPanel Grid.Column="0" Orientation="Vertical"
+                       Visibility="{x:Bind ViewModel.SelectedSeat, Mode=OneWay, Converter={StaticResource ObjectToIsNotNullConverter}}">
+                <TextBlock Text="Выбранное место:" FontWeight="SemiBold"/>
+                <TextBlock>
+                    <Run Text="Категория: "/>
+                    <Run Text="{x:Bind ViewModel.SelectedSeat.Category, Mode=OneWay}"/>
+                </TextBlock>
+                <TextBlock>
+                    <Run Text="Ряд "/>
+                    <Run Text="{x:Bind ViewModel.SelectedSeat.RowNumber, Mode=OneWay}"/>
+                    <Run Text=", Место "/>
+                    <Run Text="{x:Bind ViewModel.SelectedSeat.SeatNumber, Mode=OneWay}"/>
+                </TextBlock>
+            </StackPanel>
+            
+            <!-- Кнопки -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="Назад" 
+                        Command="{x:Bind ViewModel.CancelCommand}" 
+                        Margin="0,0,10,0"/>
             <Button Content="Продать билет" 
                     Command="{x:Bind ViewModel.SellTicketCommand}" 
                     IsEnabled="{x:Bind ViewModel.SelectedSeat, Mode=OneWay, Converter={StaticResource ObjectToIsNotNullConverter}}"/>
         </StackPanel>
+        </Grid>
 
         <!-- Прогресс загрузки -->
-        <ProgressRing Grid.RowSpan="4" 
+        <ProgressRing Grid.RowSpan="5" 
                       IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
                       Width="50"
                       Height="50"
@@ -117,7 +308,7 @@
                       VerticalAlignment="Center"/>
 
         <!-- Сообщение об ошибке -->
-        <TextBlock Grid.RowSpan="4"
+        <TextBlock Grid.RowSpan="5"
                    Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
                    Foreground="Red"
                    HorizontalAlignment="Center"

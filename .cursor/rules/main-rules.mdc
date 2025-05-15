@@ -3,7 +3,12 @@ description:
 globs: 
 alwaysApply: true
 ---
-Я делаю приложение на C# Uno Platform (.NET 9, MVVM Pattern) под Windows с использованием Supabase (пользовательская библиотека из NuGet).
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Я делаю приложение на C# Uno Platform (.NET 9, MVVM Pattern) под Windows с использованием Supabase (пользовательская библиотека из NuGet; Supabase URL и Key должны быть указаны в конфигурации) и Serilog.
 
 ## НЕ ИСПОЛЬЗУЙ НИЗКОУРОВНЕВЫЕ API!!!
 
@@ -31,5 +36,57 @@ alwaysApply: true
 •	Генерация уникального QR-кода для каждого проданного билета.
 •	Проверка наличия билета в системе по его QR-коду (включая информацию о спектакле, дате и времени сеанса, месте в зале и статусе билета).
 •	Печать билета с информацией о спектакле, дате, времени, месте в зале и QR-кодом для проверки.
+
+# Структура проекта
+
+```
+AfishaUno/
+├── Models/                  # Модели данных
+│   ├── DTOs/                # Data Transfer Objects
+│   ├── User.cs              # Модель пользователя
+│   ├── Performance.cs       # Модель спектакля
+│   ├── Schedule.cs          # Модель расписания
+│   ├── Hall.cs              # Модель зала
+│   ├── Seat.cs              # Модель места
+│   └── Ticket.cs            # Модель билета
+│
+├── Services/                # Сервисы приложения  
+│   ├── ISupabaseService.cs  # Интерфейс сервиса для работы с Supabase
+│   ├── SupabaseService.cs   # Реализация сервиса для работы с Supabase
+│   ├── INavigationService.cs # Интерфейс сервиса навигации
+│   ├── NavigationService.cs # Реализация сервиса навигации
+│   ├── IAuthorizationService.cs # Интерфейс сервиса авторизации
+│   └── AuthorizationService.cs # Реализация сервиса авторизации
+│
+├── Presentation/            # Слой представления (UI)
+│   ├── Pages/               # Страницы приложения
+│   │   ├── LoginPage.xaml   # Страница входа
+│   │   ├── MainPage.xaml    # Главная страница (с боковым меню)
+│   │   ├── HomePage.xaml    # Домашняя страница (контент)
+│   │   └── SelectSeatPage.xaml # Страница выбора места
+│   │
+│   ├── ViewModels/          # Модели представления (ViewModels)
+│   │   ├── LoginViewModel.cs # ViewModel для страницы входа
+│   │   ├── MainViewModel.cs # ViewModel для главной страницы
+│   │   └── SelectSeatViewModel.cs # ViewModel для выбора места
+│   │
+│   └── Converters/          # Конвертеры для XAML
+│       ├── BooleanToVisibilityConverter.cs
+│       └── SeatStatusToColorConverter.cs
+│
+└── App.xaml                 # Глобальные ресурсы и стили приложения
+```
+
+# Взаимодействие компонентов
+
+1. `App.xaml.cs` регистрирует все сервисы и инициализирует приложение
+2. Навигация работает через `NavigationService`, который управляет показом страниц
+3. Авторизация проверяется через `AuthorizationService`
+4. Взаимодействие с базой данных через `SupabaseService`
+5. MVVM паттерн используется для всех страниц (Pages + ViewModels)
+6. Привязка данных в XAML использует `{x:Bind}` для типобезопасности
+
+
+
 
 

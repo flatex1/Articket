@@ -1,53 +1,88 @@
 <Page
     x:Class="AfishaUno.Presentation.Pages.LoginPage"
+    x:Name="LoginPageRoot"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:AfishaUno.Presentation.Pages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="{ThemeResource ApplicationBackgroundBrush}">
 
     <Grid>
-        <StackPanel VerticalAlignment="Center" 
-                    HorizontalAlignment="Center" 
-                    Width="400" 
-                    Padding="20">
+        <Grid.Background>
+            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                <GradientStop Color="{StaticResource ApplicationBackgroundColor}" Offset="0"/>
+                <GradientStop Color="{StaticResource ApplicationSecondaryColor}" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+        
+        <Border Background="White" 
+                BorderBrush="{StaticResource ApplicationSecondaryBrush}" 
+                BorderThickness="1" 
+                CornerRadius="8" 
+                Width="400" 
+                VerticalAlignment="Center" 
+                HorizontalAlignment="Center"
+                Padding="30">
             
-            <TextBlock Text="Авторизация в системе" 
-                       Style="{StaticResource TitleTextBlockStyle}"
+            <Border.Shadow>
+                <ThemeShadow />
+            </Border.Shadow>
+            
+            <StackPanel VerticalAlignment="Center" 
+                    HorizontalAlignment="Center" 
+                    Width="340" 
+                    Spacing="15">
+            
+                <TextBlock Text="ARTICKET" 
+                       FontSize="28"
+                       FontWeight="Bold"
+                       Margin="0,0,0,10"
+                       Foreground="{StaticResource ApplicationPrimaryBrush}"
+                       HorizontalAlignment="Center"/>
+                
+                <TextBlock Text="Авторизация в системе" 
+                       Style="{StaticResource SubtitleTextBlockStyle}"
                        Margin="0,0,0,20"
                        HorizontalAlignment="Center"/>
-            
-            <TextBox x:Name="EmailTextBox" 
+                
+                <TextBox x:Name="EmailTextBox" 
                      Header="Email"
-                     Margin="0,0,0,10"
+                     PlaceholderText="Введите ваш email"
                      Text="{x:Bind ViewModel.Email, Mode=TwoWay}"/>
-            
-            <PasswordBox x:Name="PasswordBox" 
+                
+                <PasswordBox x:Name="PasswordBox" 
                          Header="Пароль"
-                         Margin="0,0,0,20"
+                         PlaceholderText="Введите ваш пароль"
                          Password="{x:Bind ViewModel.Password, Mode=TwoWay}"/>
-            
-            <Button Content="Войти" 
+                
+                <Button Content="Войти" 
                     HorizontalAlignment="Stretch"
+                    Background="{StaticResource ApplicationPrimaryBrush}"
+                    Foreground="White"
                     Command="{x:Bind ViewModel.LoginCommand}"
+                    Margin="0,10,0,0"
+                    Padding="0,10,0,10"
                     IsEnabled="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BooleanNegationConverter}}"/>
-            
-            <HyperlinkButton Content="Создать учетную запись администратора" 
+                
+                <HyperlinkButton Content="Создать учетную запись администратора" 
                              HorizontalAlignment="Center"
                              Margin="0,10,0,0"
                              Command="{x:Bind ViewModel.NavigateToRegisterCommand}"/>
-            
-            <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
-                          Margin="0,20,0,0"
+                
+                <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+                          Margin="0,10,0,0"
+                          Width="30"
+                          Height="30"
                           HorizontalAlignment="Center"/>
-            
-            <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                
+                <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
                        Foreground="Red"
                        Margin="0,10,0,0"
                        TextWrapping="Wrap"
                        HorizontalAlignment="Center"/>
-        </StackPanel>
+            </StackPanel>
+        </Border>
     </Grid>
 </Page> 

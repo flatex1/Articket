@@ -2,6 +2,12 @@ using AfishaUno.Presentation.Pages;
 using AfishaUno.Presentation.ViewModels;
 using AfishaUno.Services;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using System.IO;
+using Microsoft.Extensions.Hosting;
+using AfishaUno.Models;
+using System;
 
 namespace AfishaUno;
 public partial class App : Application
@@ -13,6 +19,7 @@ public partial class App : Application
     public App()
     {
         this.InitializeComponent();
+        this.RequestedTheme = ApplicationTheme.Light;
     }
 
     protected Window? MainWindow { get; private set; }
@@ -20,9 +27,10 @@ public partial class App : Application
 
     #region Fields
 
-    private Window _window;
-    private IServiceProvider _serviceProvider;
-    private IConfiguration _configuration;
+    private Window? _window;
+    private Frame? _rootFrame;
+    private IServiceProvider? _serviceProvider;
+    private IConfiguration? _configuration;
 
     /// <summary>
     /// Gets the current app as a strongly typed reference.
@@ -32,7 +40,17 @@ public partial class App : Application
     /// <summary>
     /// Gets the service provider.
     /// </summary>
-    public IServiceProvider Services => _serviceProvider;
+    public IServiceProvider Services
+    {
+        get
+        {
+            if (_serviceProvider == null)
+            {
+                ConfigureServices();
+            }
+            return _serviceProvider!;
+        }
+    }
 
     #endregion
 
@@ -58,14 +76,30 @@ public partial class App : Application
         services.AddSingleton<IConfiguration>(configuration);
         services.AddSingleton<ISupabaseService, SupabaseService>();
         services.AddSingleton<INavigationService, NavigationService>();
+        services.AddSingleton<IAuthorizationService, AuthorizationService>();
+        services.AddSingleton<ITicketPrintService, TicketPrintService>();
+
+        // Добавляем логирование
+        services.AddLogging(builder =>
+        {
+            builder.AddConsole();
+            builder.AddDebug();
+        });
 
         // Регистрация ViewModels
         services.AddTransient<LoginViewModel>();
         services.AddTransient<MainViewModel>();
-        services.AddTransient<RegisterViewModel>();
+        services.AddTransient<HomeViewModel>();
         services.AddTransient<SelectSeatViewModel>();
         services.AddTransient<AddPerformanceViewModel>();
         services.AddTransient<AddScheduleViewModel>();
+        services.AddTransient<RegisterViewModel>();
+        services.AddTransient<ScheduleViewModel>();
+        services.AddTransient<TicketDetailsViewModel>();
+        services.AddTransient<CustomerSearchViewModel>();
+        
+        // Регистрация статических сервисов для работы с выбранными объектами
+        services.AddSingleton<CustomerSelectionManager>();
 
         _serviceProvider = services.BuildServiceProvider();
     }
@@ -73,29 +107,46 @@ public partial class App : Application
     /// <summary>
     /// Invoked when the application is launched normally by the end user.
     /// </summary>
-    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    protected override void OnLaunched(LaunchActivatedEventArgs e)
     {
-        ConfigureServices();
+        // Инициализируем сервисы, если они еще не инициализированы
+        if (_serviceProvider == null)
+        {
+            ConfigureServices();
+        }
 
-        var rootFrame = new Frame();
+        // Конфигурация маршрутов навигации
+        ConfigureNavigation(_serviceProvider!);
+        
+        // Создаем окно
         _window = new Window();
-        _window.Content = rootFrame;
+        
+        // Создаем или получаем корневой фрейм
+        _rootFrame = _window.Content as Frame;
+        
+        // Если у нас еще нет фрейма, создаем его
+        if (_rootFrame == null)
+        {
+            _rootFrame = new Frame();
+            _window.Content = _rootFrame;
+        }
+
+        // Настраиваем навигационный сервис
+        var navigationService = Services.GetService<INavigationService>();
+        if (navigationService != null)
+        {
+            navigationService.Frame = _rootFrame;
+        }
+
+        // Активируем окно перед навигацией для предотвращения проблем с ForegroundWindow
         _window.Activate();
 
-        // Настройка навигации
-        var navigationService = Services.GetService<INavigationService>();
-        navigationService.Initialize(rootFrame);
-        navigationService.Configure("LoginPage", typeof(LoginPage));
-        navigationService.Configure("MainPage", typeof(MainPage));
-        navigationService.Configure("RegisterPage", typeof(RegisterPage));
-        navigationService.Configure("SelectSeatPage", typeof(SelectSeatPage));
-        navigationService.Configure("AddPerformancePage", typeof(AddPerformancePage));
-        navigationService.Configure("AddSchedulePage", typeof(AddSchedulePage));
-        // Закомментируем функциональность, которая еще не реализована
-        // navigationService.Configure("PerformanceDetailPage", typeof(PerformanceDetailPage));
-
-        // По умолчанию открываем страницу авторизации
-        navigationService.NavigateTo("LoginPage");
+        // Навигация на стартовую страницу
+        if (_rootFrame.Content == null)
+        {
+            // Переходим на страницу входа
+            _rootFrame.Navigate(typeof(LoginPage));
+        }
     }
 
     private static void RegisterRoutes(IViewRegistry views, IRouteRegistry routes)
@@ -110,10 +161,38 @@ public partial class App : Application
             new RouteMap("", View: views.FindByViewModel<ShellViewModel>(),
                 Nested:
                 [
-                    new ("Login", View: views.FindByViewModel<LoginViewModel>()),
-                    new ("Main", View: views.FindByViewModel<MainViewModel>(), IsDefault:true)
+                    new("Login", View: views.FindByViewModel<LoginViewModel>()),
+                    new("Main", View: views.FindByViewModel<MainViewModel>(), IsDefault: true)
                 ]
             )
         );
+    }
+
+    private void ConfigureNavigation(IServiceProvider serviceProvider)
+    {
+        var navigationService = serviceProvider.GetService<INavigationService>();
+        if (navigationService == null) return;
+
+        // Регистрируем типы страниц
+        navigationService.Configure("LoginPage", typeof(LoginPage));
+        navigationService.Configure("MainPage", typeof(MainPage));
+        navigationService.Configure("HomePage", typeof(HomePage));
+        navigationService.Configure("SchedulePage", typeof(SchedulePage));
+        navigationService.Configure("SelectSeatPage", typeof(SelectSeatPage));
+        navigationService.Configure("AddSchedulePage", typeof(AddSchedulePage));
+        navigationService.Configure("TicketDetailsPage", typeof(TicketDetailsPage));
+        navigationService.Configure("CustomerSearchPage", typeof(CustomerSearchPage));
+    }
+}
+
+// Класс для хранения выбранного клиента между страницами
+public class CustomerSelectionManager
+{
+    private Customer? _selectedCustomer;
+
+    public Customer? SelectedCustomer
+    {
+        get => _selectedCustomer;
+        set => _selectedCustomer = value;
     }
 }

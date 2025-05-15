@@ -61,8 +61,12 @@
     <None Include="..\.editorconfig" Link=".editorconfig" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" />
+    <PackageReference Include="CommunityToolkit.WinUI.Extensions" />
+    <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="QRCoder" />
+    <PackageReference Include="QuestPDF" />
     <PackageReference Include="Supabase" />
   </ItemGroup>
   <ItemGroup>

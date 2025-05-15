@@ -23,12 +23,22 @@ namespace AfishaUno.Presentation.Converters
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            return !(bool)value;
+            if (value is bool boolValue)
+            {
+                return !boolValue;
+            }
+            
+            return false;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            return !(bool)value;
+            if (value is bool boolValue)
+            {
+                return !boolValue;
+            }
+            
+            return false;
         }
     }
 

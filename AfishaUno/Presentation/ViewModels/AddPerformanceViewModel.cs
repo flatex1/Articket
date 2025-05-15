@@ -92,16 +92,16 @@ namespace AfishaUno.Presentation.ViewModels
                 }
 
                 var performance = new Performance
-                {
+            {
                     Id = Guid.NewGuid(), // Генерируем новый идентификатор
-                    Title = Title,
+                Title = Title,
                     Description = Description ?? string.Empty,
-                    Duration = Duration,
+                Duration = Duration,
                     PosterUrl = PosterUrl ?? string.Empty,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-                
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
                 Trace.WriteLine($"[SavePerformanceAsync] Создан объект Performance: Id={performance.Id}, Title='{performance.Title}', Description.Length={performance.Description?.Length ?? 0}");
 
                 // Проверяем, что сервис инициализирован
@@ -113,14 +113,14 @@ namespace AfishaUno.Presentation.ViewModels
                 }
                 
                 Trace.WriteLine("[SavePerformanceAsync] Вызов CreatePerformanceAsync...");
-                var result = await _supabaseService.CreatePerformanceAsync(performance);
+            var result = await _supabaseService.CreatePerformanceAsync(performance);
                 Trace.WriteLine($"[SavePerformanceAsync] Результат CreatePerformanceAsync: {(result != null ? "OK" : "NULL")}");
 
-                if (result != null)
-                {
+            if (result != null)
+            {
                     Trace.WriteLine($"[SavePerformanceAsync] Спектакль успешно создан с Id={result.Id}");
                     // Перейти к списку спектаклей
-                    _navigationService.GoBack();
+                _navigationService.GoBack();
                 }
                 else
                 {

@@ -1,6 +1,7 @@
 ﻿using AfishaUno.Services;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 
 namespace AfishaUno.Presentation.ViewModels
 {
@@ -26,6 +27,21 @@ namespace AfishaUno.Presentation.ViewModels
 
         [ObservableProperty]
         private decimal _ticketPrice;
+
+        [ObservableProperty]
+        private ObservableCollection<SeatViewModel> _balconySeats = new();
+
+        [ObservableProperty]
+        private ObservableCollection<SeatViewModel> _parterSeats = new();
+
+        [ObservableProperty]
+        private ObservableCollection<SeatViewModel> _amphitheaterSeats = new();
+
+        [ObservableProperty]
+        private ObservableCollection<SeatViewModel> _leftBoxSeats = new();
+
+        [ObservableProperty]
+        private ObservableCollection<SeatViewModel> _rightBoxSeats = new();
 
         public IRelayCommand SelectSeatCommand { get; }
         public IAsyncRelayCommand SellTicketCommand { get; }
@@ -82,123 +98,181 @@ namespace AfishaUno.Presentation.ViewModels
             }
         }
 
-        private void LoadHallScheme(List<Seat> allSeats, List<Ticket> tickets)
+        private void LoadHallScheme(IEnumerable<Seat> seats, IEnumerable<Ticket> tickets)
         {
-            // Определяем занятые места
-            var soldSeatIds = tickets
-                .Where(t => t.Status is TicketStatuses.Sold or TicketStatuses.Reserved)
-                .Select(t => t.SeatId)
-                .ToHashSet();
+            var soldTickets = tickets.Where(t => t.Status == TicketStatuses.Sold).ToList();
 
-            // Базовые параметры для отображения зала
-            double startX = 50;
-            double startY = 100;
-            double seatWidth = 30;
-            double seatHeight = 30;
-            double rowSpacing = 40;
-            double seatSpacing = 35;
+            // Очищаем все коллекции
+            Seats.Clear();
+            BalconySeats.Clear();
+            ParterSeats.Clear();
+            AmphitheaterSeats.Clear();
+            LeftBoxSeats.Clear();
+            RightBoxSeats.Clear();
 
-            // Формируем места для разных секций зала
-            // Партер
-            var parterSeats = allSeats.Where(s => s.Category == "Партер").ToList();
-            foreach (var seat in parterSeats)
+            // Группируем места по категориям
+            var seatsByCategory = seats.GroupBy(s => s.Category.ToLower()).ToDictionary(g => g.Key, g => g.ToList());
+
+            // Выводим отладочную информацию о местах
+            Trace.WriteLine($"Загружено мест: {seats.Count()}");
+            foreach (var group in seatsByCategory)
             {
-                var seatVM = new SeatViewModel(seat)
+                Trace.WriteLine($"Категория {group.Key}: {group.Value.Count} мест");
+                foreach (var row in group.Value.GroupBy(s => s.RowNumber).OrderBy(r => r.Key))
                 {
-                    X = startX + (seat.SeatNumber - 1) * seatSpacing,
-                    Y = startY + (seat.RowNumber - 1) * rowSpacing,
-                    Status = soldSeatIds.Contains(seat.Id) ? "Sold" : "Available"
-                };
-
-                Seats.Add(seatVM);
+                    Trace.WriteLine($"  Ряд {row.Key}: {row.Count()} мест");
+                }
             }
 
-            // Балкон (выше партера)
-            startY = 20;
-            var balconySeats = allSeats.Where(s => s.Category == "Балкон").ToList();
-            foreach (var seat in balconySeats)
+            // Обработка балкона
+            if (seatsByCategory.TryGetValue("балкон", out var balconySeats))
             {
-                var seatVM = new SeatViewModel(seat)
+                foreach (var rowGroup in balconySeats.GroupBy(s => s.RowNumber).OrderBy(g => g.Key))
                 {
-                    X = startX + (seat.SeatNumber - 1) * seatSpacing,
-                    Y = startY + (seat.RowNumber - 1) * rowSpacing,
-                    Status = soldSeatIds.Contains(seat.Id) ? "Sold" : "Available"
-                };
+                    var rowSeats = rowGroup.OrderBy(s => s.SeatNumber).ToList();
 
+                    foreach (var seat in rowSeats)
+            {
+                        var seatVM = new SeatViewModel(seat);
+                        seatVM.Status = soldTickets.Any(t => t.SeatId == seat.Id) ? "Sold" : "Available";
+
+                        BalconySeats.Add(seatVM);
                 Seats.Add(seatVM);
             }
-
-            // Амфитеатр (позади партера)
-            startY = 300;
-            var amphitheaterSeats = allSeats.Where(s => s.Category == "Амфитеатр").ToList();
-            foreach (var seat in amphitheaterSeats)
-            {
-                var seatVM = new SeatViewModel(seat)
-                {
-                    X = startX + (seat.SeatNumber - 1) * seatSpacing,
-                    Y = startY + (seat.RowNumber - 1) * rowSpacing,
-                    Status = soldSeatIds.Contains(seat.Id) ? "Sold" : "Available"
-                };
-
-                Seats.Add(seatVM);
+                }
             }
 
-            // Ложи (по бокам)
-            var boxSeats = allSeats.Where(s => s.Category == "Ложа").ToList();
-            foreach (var seat in boxSeats)
+            // Обработка партера
+            if (seatsByCategory.TryGetValue("партер", out var parterSeats))
             {
+                foreach (var rowGroup in parterSeats.GroupBy(s => s.RowNumber).OrderBy(g => g.Key))
+                {
+                    var rowSeats = rowGroup.OrderBy(s => s.SeatNumber).ToList();
+
+                    foreach (var seat in rowSeats)
+            {
+                        var seatVM = new SeatViewModel(seat);
+                        seatVM.Status = soldTickets.Any(t => t.SeatId == seat.Id) ? "Sold" : "Available";
+
+                        ParterSeats.Add(seatVM);
+                Seats.Add(seatVM);
+            }
+                }
+            }
+
+            // Обработка амфитеатра
+            if (seatsByCategory.TryGetValue("амфитеатр", out var amphiSeats))
+            {
+                foreach (var rowGroup in amphiSeats.GroupBy(s => s.RowNumber).OrderBy(g => g.Key))
+                {
+                    var rowSeats = rowGroup.OrderBy(s => s.SeatNumber).ToList();
+
+                    foreach (var seat in rowSeats)
+            {
+                        var seatVM = new SeatViewModel(seat);
+                        seatVM.Status = soldTickets.Any(t => t.SeatId == seat.Id) ? "Sold" : "Available";
+
+                        AmphitheaterSeats.Add(seatVM);
+                Seats.Add(seatVM);
+                    }
+                }
+            }
+
+            // Обработка лож
+            if (seatsByCategory.TryGetValue("ложа", out var boxSeats))
+            {
+                var leftBoxSeats = boxSeats.Where(s => s.SeatNumber <= 4).ToList();
+                var rightBoxSeats = boxSeats.Where(s => s.SeatNumber > 4).ToList();
+
                 // Левые ложи
-                if (seat.SeatNumber <= 4)
+                foreach (var rowGroup in leftBoxSeats.GroupBy(s => s.RowNumber).OrderBy(g => g.Key))
                 {
-                    var seatVM = new SeatViewModel(seat)
-                    {
-                        X = 10 + (seat.SeatNumber - 1) * seatSpacing,
-                        Y = 100 + (seat.RowNumber - 1) * rowSpacing,
-                        Status = soldSeatIds.Contains(seat.Id) ? "Sold" : "Available"
-                    };
+                    var rowSeats = rowGroup.OrderBy(s => s.SeatNumber).ToList();
 
+                    foreach (var seat in rowSeats)
+                    {
+                        var seatVM = new SeatViewModel(seat);
+                        seatVM.Status = soldTickets.Any(t => t.SeatId == seat.Id) ? "Sold" : "Available";
+
+                        LeftBoxSeats.Add(seatVM);
                     Seats.Add(seatVM);
+                    }
                 }
-                // Правые ложи
-                else
-                {
-                    var seatVM = new SeatViewModel(seat)
-                    {
-                        X = 500 + ((seat.SeatNumber - 5) % 4) * seatSpacing,
-                        Y = 100 + (seat.RowNumber - 1) * rowSpacing,
-                        Status = soldSeatIds.Contains(seat.Id) ? "Sold" : "Available"
-                    };
 
+                // Правые ложи
+                foreach (var rowGroup in rightBoxSeats.GroupBy(s => s.RowNumber).OrderBy(g => g.Key))
+                {
+                    var rowSeats = rowGroup.OrderBy(s => s.SeatNumber).ToList();
+
+                    foreach (var seat in rowSeats)
+                    {
+                        var seatVM = new SeatViewModel(seat);
+                        seatVM.Status = soldTickets.Any(t => t.SeatId == seat.Id) ? "Sold" : "Available";
+
+                        RightBoxSeats.Add(seatVM);
                     Seats.Add(seatVM);
                 }
             }
+            }
+
+            // Выводим информацию о количестве мест в коллекциях
+            Trace.WriteLine($"Всего мест в коллекциях:");
+            Trace.WriteLine($"Балкон: {BalconySeats.Count}");
+            Trace.WriteLine($"Партер: {ParterSeats.Count}");
+            Trace.WriteLine($"Амфитеатр: {AmphitheaterSeats.Count}");
+            Trace.WriteLine($"Левая ложа: {LeftBoxSeats.Count}");
+            Trace.WriteLine($"Правая ложа: {RightBoxSeats.Count}");
+            Trace.WriteLine($"Общая коллекция: {Seats.Count}");
         }
 
         private void OnSelectSeat(SeatViewModel seat)
         {
-            if (seat == null || seat.Status == "Sold")
+            try
+            {
+                Trace.WriteLine($"Выбор места: {seat?.Id}, статус: {seat?.Status}");
+                
+                if (seat == null)
+                {
+                    Trace.WriteLine("Выбрано пустое место (null)");
                 return;
+                }
+                    
+                if (seat.Status == "Sold")
+                {
+                    Trace.WriteLine("Место уже продано");
+                    return;
+                }
 
             // Сбрасываем выбор с предыдущего места
-            if (SelectedSeat != null && SelectedSeat != seat)
+                if (SelectedSeat != null && !SelectedSeat.Equals(seat))
             {
+                    Trace.WriteLine($"Сброс статуса с предыдущего места: {SelectedSeat.Id}");
                 SelectedSeat.Status = "Available";
             }
 
             // Устанавливаем новое выбранное место
             if (seat.Status == "Selected")
             {
+                    Trace.WriteLine($"Отмена выбора места: {seat.Id}");
                 seat.Status = "Available";
                 SelectedSeat = null;
             }
             else
             {
+                    Trace.WriteLine($"Выбор нового места: {seat.Id}");
                 seat.Status = "Selected";
                 SelectedSeat = seat;
             }
 
             // Обновляем доступность команды продажи
             SellTicketCommand.NotifyCanExecuteChanged();
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"ОШИБКА при выборе места: {ex.GetType().Name}: {ex.Message}");
+                Trace.WriteLine($"StackTrace: {ex.StackTrace}");
+                ErrorMessage = $"Ошибка при выборе места: {ex.Message}";
+            }
         }
 
         private bool CanSellTicket()
@@ -208,59 +282,36 @@ namespace AfishaUno.Presentation.ViewModels
 
         private async Task SellTicketAsync()
         {
-            if (SelectedSeat == null)
-                return;
-
             try
             {
-                IsLoading = true;
-                ErrorMessage = string.Empty;
-
-                // Создаем билет
-                var ticket = new Ticket
+                if (SelectedSeat == null)
                 {
-                    ScheduleId = Schedule.Id,
-                    SeatId = SelectedSeat.Id,
-                    Status = TicketStatuses.Sold,
-                    Price = TicketPrice,
-                    CreatedBy = _supabaseService.CurrentUser.Id,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-
-                // Сохраняем билет
-                var result = await _supabaseService.SellTicketAsync(ticket);
-
-                if (result != null)
-                {
-                    // Обновляем статус места
-                    SelectedSeat.Status = "Sold";
-                    SelectedSeat = null;
-
-                    // TODO: Показать сообщение об успешной продаже или перейти к странице билета
-
-                    // Возвращаемся к списку расписаний
-                    _navigationService.GoBack();
+                    ErrorMessage = "Не выбрано место";
+                    return;
                 }
-                else
-                {
-                    ErrorMessage = "Не удалось продать билет";
-                }
+
+                // Вместо прямой продажи билета, переходим к форме оформления билета
+                await _navigationService.NavigateToAsync("TicketDetailsPage", 
+                    new Dictionary<string, object>
+                    {
+                        { "Schedule", Schedule },
+                        { "SelectedSeat", SelectedSeat }
+                    });
             }
             catch (Exception ex)
             {
                 ErrorMessage = $"Ошибка: {ex.Message}";
-                Trace.WriteLine($"Ошибка продажи билета: {ex.Message}");
-            }
-            finally
-            {
-                IsLoading = false;
+                Trace.WriteLine($"Исключение при переходе к оформлению билета: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Trace.WriteLine($"Внутренняя ошибка: {ex.InnerException.Message}");
+                }
             }
         }
 
-        private void OnCancel()
+        private async void OnCancel()
         {
-            _navigationService.GoBack();
+            await _navigationService.GoBackAsync();
         }
     }
 }

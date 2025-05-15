@@ -170,7 +170,11 @@ namespace AfishaUno.Presentation.ViewModels
 
                 Trace.WriteLine($"[SaveScheduleAsync] Создаем расписание: Performance={SelectedPerformance.Title}, Hall={SelectedHall.Name}, Time={schedule.StartTime}");
 
-                var result = await _supabaseService.CreateScheduleAsync(schedule);
+                var result = await _supabaseService.CreateScheduleAsync(
+                    schedule.PerformanceId,
+                    schedule.HallId,
+                    schedule.StartTime,
+                    schedule.BasePrice);
 
                 if (result != null)
                 {

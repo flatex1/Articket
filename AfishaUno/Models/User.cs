@@ -45,4 +45,4 @@ namespace AfishaUno.Models
             return HashCode.Combine(Id);
         }
     }
-}
+} 
