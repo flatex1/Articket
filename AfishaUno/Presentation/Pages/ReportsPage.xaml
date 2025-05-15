@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="AfishaUno.Presentation.Pages.ReportsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:AfishaUno.Presentation.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:AfishaUno.Models"
+    xmlns:viewmodels="using:AfishaUno.Presentation.ViewModels"
+    xmlns:converters="using:AfishaUno.Presentation.Converters"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <converters:EmptyListToVisibilityConverter x:Key="EmptyListToVisibilityConverter" />
+        
+        <Style x:Key="ReportCardStyle" TargetType="Border">
+            <Setter Property="BorderBrush" Value="{ThemeResource SystemControlForegroundBaseMediumLowBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="Background" Value="{ThemeResource SystemControlBackgroundAltHighBrush}" />
+        </Style>
+        
+        <Style x:Key="ReportTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        
+        <Style x:Key="ReportButtonStyle" TargetType="Button">
+            <Setter Property="Margin" Value="0,8,8,0" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="MinWidth" Value="120" />
+        </Style>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Заголовок страницы -->
+        <TextBlock 
+            Text="Отчеты" 
+            Style="{StaticResource TitleTextBlockStyle}" 
+            Margin="24,24,24,16" />
+
+        <ScrollViewer Grid.Row="1" Padding="24,0,24,24">
+            <StackPanel>
+                <!-- Секция для создания отчетов -->
+                <Border Style="{StaticResource ReportCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Создать новый отчет" Style="{StaticResource ReportTitleStyle}" />
+                        
+                        <!-- Выбор типа отчета -->
+                        <ComboBox 
+                            x:Name="ReportTypeComboBox"
+                            Header="Тип отчета" 
+                            PlaceholderText="Выберите тип отчета" 
+                            Width="400"
+                            HorizontalAlignment="Left"
+                            Margin="0,8,0,0"
+                            SelectedIndex="{x:Bind ViewModel.SelectedReportTypeIndex, Mode=TwoWay}">
+                            <ComboBoxItem Content="Отчет о продажах билетов" />
+                            <ComboBoxItem Content="Отчет о посещаемости спектаклей" />
+                        </ComboBox>
+                        
+                        <!-- Период отчета -->
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Text="Период отчета" Grid.ColumnSpan="2" Margin="0,0,0,8" />
+                            
+                            <DatePicker 
+                                x:Name="StartDatePicker" 
+                                Header="С" 
+                                Width="200"
+                                Date="{x:Bind ViewModel.StartDate, Mode=TwoWay}"
+                                Grid.Row="1" Grid.Column="0" 
+                                Margin="0,0,16,0" />
+                                
+                            <DatePicker 
+                                x:Name="EndDatePicker" 
+                                Header="По" 
+                                Width="200"
+                                Date="{x:Bind ViewModel.EndDate, Mode=TwoWay}"
+                                Grid.Row="1" Grid.Column="1" />
+                        </Grid>
+                        
+                        <!-- Название отчета -->
+                        <TextBox 
+                            x:Name="ReportTitleTextBox"
+                            Header="Название отчета (необязательно)" 
+                            PlaceholderText="Введите название отчета"
+                            Margin="0,16,0,0"
+                            Width="400"
+                            HorizontalAlignment="Left"
+                            Text="{x:Bind ViewModel.ReportTitle, Mode=TwoWay}" />
+                        
+                        <!-- Кнопки -->
+                        <StackPanel Orientation="Horizontal" Margin="0,24,0,0">
+                            <Button 
+                                x:Name="GenerateReportButton" 
+                                Content="Сформировать" 
+                                Style="{StaticResource ReportButtonStyle}"
+                                Command="{x:Bind ViewModel.GenerateReportCommand}"
+                                IsEnabled="{x:Bind ViewModel.CanGenerateReport, Mode=OneWay}" />
+                            
+                            <Button 
+                                x:Name="SaveReportButton" 
+                                Content="Сформировать и сохранить" 
+                                Style="{StaticResource ReportButtonStyle}"
+                                Command="{x:Bind ViewModel.GenerateAndSaveReportCommand}"
+                                IsEnabled="{x:Bind ViewModel.CanGenerateReport, Mode=OneWay}" />
+                        </StackPanel>
+                        
+                        <!-- Статус операции -->
+                        <TextBlock 
+                            x:Name="StatusTextBlock"
+                            Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" 
+                            Margin="0,16,0,0"
+                            Visibility="{x:Bind ViewModel.IsStatusMessageVisible, Mode=OneWay}"
+                            Foreground="{x:Bind ViewModel.StatusMessageColor, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Секция истории отчетов -->
+                <Border Style="{StaticResource ReportCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Сохраненные отчеты" Style="{StaticResource ReportTitleStyle}" />
+                        
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,8">
+                            <Button 
+                                Content="Обновить список" 
+                                Command="{x:Bind ViewModel.RefreshSavedReportsCommand}" 
+                                Style="{StaticResource ReportButtonStyle}" />
+                        </StackPanel>
+                        
+                        <!-- Список сохраненных отчетов -->
+                        <ListView 
+                            x:Name="SavedReportsListView"
+                            ItemsSource="{x:Bind ViewModel.SavedReports, Mode=OneWay}"
+                            SelectedItem="{x:Bind ViewModel.SelectedReport, Mode=TwoWay}"
+                            Background="Transparent"
+                            BorderThickness="1"
+                            BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}"
+                            MinHeight="200"
+                            MaxHeight="400"
+                            Margin="0,8,0,0">
+                            
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="models:Report">
+                                    <Grid Padding="0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{x:Bind Title}" FontWeight="SemiBold" />
+                                            <TextBlock Text="{x:Bind ReportType}" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                                            <TextBlock Text="{x:Bind CreatedAt}" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" />
+                                        </StackPanel>
+                                        
+                                        <Button 
+                                            Grid.Column="1"
+                                            Content="Открыть"
+                                            Command="{Binding ViewModel.OpenSavedReportCommand, ElementName=SavedReportsListView}"
+                                            CommandParameter="{x:Bind Id}"
+                                            Margin="16,0,8,0"
+                                            Padding="8,4" />
+                                            
+                                        <Button 
+                                            Grid.Column="2"
+                                            Content="Удалить"
+                                            Command="{Binding ViewModel.DeleteSavedReportCommand, ElementName=SavedReportsListView}"
+                                            CommandParameter="{x:Bind Id}"
+                                            Margin="0,0,0,0"
+                                            Padding="8,4" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                            
+                            <ListView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsStackPanel />
+                                </ItemsPanelTemplate>
+                            </ListView.ItemsPanel>
+                            
+                            <ListView.FooterTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="Нет сохраненных отчетов" 
+                                              HorizontalAlignment="Center" 
+                                              VerticalAlignment="Center"
+                                              Margin="0,24" 
+                                              Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                              Visibility="{Binding ElementName=SavedReportsListView, Path=Items.Count, Converter={StaticResource EmptyListToVisibilityConverter}}" />
+                                </DataTemplate>
+                            </ListView.FooterTemplate>
+                        </ListView>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page> 

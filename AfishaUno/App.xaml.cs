@@ -8,6 +8,8 @@ using System.IO;
 using Microsoft.Extensions.Hosting;
 using AfishaUno.Models;
 using System;
+using Microsoft.UI.Xaml;
+using WinRT.Interop;
 
 namespace AfishaUno;
 public partial class App : Application
@@ -24,6 +26,23 @@ public partial class App : Application
 
     protected Window? MainWindow { get; private set; }
     protected IHost? Host { get; private set; }
+
+    public Window MainWindow2 => _window;
+    
+    /// <summary>
+    /// Получает дескриптор основного окна приложения для использования с инициализацией диалогов WinUI
+    /// </summary>
+    public IntPtr MainWindowHandle
+    {
+        get
+        {
+            if (_window == null)
+                return IntPtr.Zero;
+            
+            var windowHandle = WindowNative.GetWindowHandle(_window);
+            return windowHandle;
+        }
+    }
 
     #region Fields
 
@@ -78,6 +97,7 @@ public partial class App : Application
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<IAuthorizationService, AuthorizationService>();
         services.AddSingleton<ITicketPrintService, TicketPrintService>();
+        services.AddSingleton<IReportService, ReportService>();
 
         // Добавляем логирование
         services.AddLogging(builder =>
@@ -97,6 +117,7 @@ public partial class App : Application
         services.AddTransient<ScheduleViewModel>();
         services.AddTransient<TicketDetailsViewModel>();
         services.AddTransient<CustomerSearchViewModel>();
+        services.AddTransient<ReportsViewModel>();
         
         // Регистрация статических сервисов для работы с выбранными объектами
         services.AddSingleton<CustomerSelectionManager>();
@@ -149,25 +170,6 @@ public partial class App : Application
         }
     }
 
-    private static void RegisterRoutes(IViewRegistry views, IRouteRegistry routes)
-    {
-        views.Register(
-            new ViewMap(ViewModel: typeof(ShellViewModel)),
-            new ViewMap<LoginPage, LoginViewModel>(),
-            new ViewMap<MainPage, MainViewModel>()
-        );
-
-        routes.Register(
-            new RouteMap("", View: views.FindByViewModel<ShellViewModel>(),
-                Nested:
-                [
-                    new("Login", View: views.FindByViewModel<LoginViewModel>()),
-                    new("Main", View: views.FindByViewModel<MainViewModel>(), IsDefault: true)
-                ]
-            )
-        );
-    }
-
     private void ConfigureNavigation(IServiceProvider serviceProvider)
     {
         var navigationService = serviceProvider.GetService<INavigationService>();
@@ -182,6 +184,9 @@ public partial class App : Application
         navigationService.Configure("AddSchedulePage", typeof(AddSchedulePage));
         navigationService.Configure("TicketDetailsPage", typeof(TicketDetailsPage));
         navigationService.Configure("CustomerSearchPage", typeof(CustomerSearchPage));
+        navigationService.Configure("RegisterPage", typeof(RegisterPage));
+        navigationService.Configure("AddPerformancePage", typeof(AddPerformancePage));
+        navigationService.Configure("ReportsPage", typeof(ReportsPage));
     }
 }
 

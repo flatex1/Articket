@@ -1,0 +1,40 @@
+-- Заполнение таблицы loyalty_cards
+INSERT INTO loyalty_cards (id, customer_id, card_number, status, discount_category_id, points, level, issue_date, expiry_date, created_at, updated_at) VALUES
+('11111111-1111-aaaa-1111-111111111111', '11111111-aaaa-1111-aaaa-111111111111', 'LC-0001-2023', 'active', 'eeeeeeee-cccc-eeee-cccc-eeeeeeeeeeee', 150, 'silver', NOW() - INTERVAL '6 MONTH', NOW() + INTERVAL '18 MONTH', NOW(), NOW()),
+('22222222-2222-aaaa-2222-222222222222', '33333333-aaaa-3333-aaaa-333333333333', 'LC-0002-2023', 'active', 'ffffffff-cccc-ffff-cccc-ffffffffffff', 320, 'gold', NOW() - INTERVAL '1 YEAR', NOW() + INTERVAL '1 YEAR', NOW(), NOW()),
+('33333333-3333-aaaa-3333-333333333333', '55555555-aaaa-5555-aaaa-555555555555', 'LC-0003-2023', 'active', 'ffffffff-cccc-ffff-cccc-ffffffffffff', 450, 'gold', NOW() - INTERVAL '3 MONTH', NOW() + INTERVAL '21 MONTH', NOW(), NOW()),
+('44444444-4444-aaaa-4444-444444444444', '77777777-aaaa-7777-aaaa-777777777777', 'LC-0004-2023', 'active', 'eeeeeeee-cccc-eeee-cccc-eeeeeeeeeeee', 90, 'silver', NOW() - INTERVAL '1 MONTH', NOW() + INTERVAL '23 MONTH', NOW(), NOW()),
+('55555555-5555-aaaa-5555-555555555555', '99999999-aaaa-9999-aaaa-999999999999', 'LC-0005-2023', 'active', '99999999-cccc-9999-cccc-999999999999', 850, 'platinum', NOW() - INTERVAL '1 YEAR', NOW() + INTERVAL '1 YEAR', NOW(), NOW()),
+('66666666-6666-aaaa-6666-666666666666', 'bbbbbbbb-aaaa-bbbb-aaaa-bbbbbbbbbbb1', 'LC-0006-2023', 'active', 'eeeeeeee-cccc-eeee-cccc-eeeeeeeeeeee', 120, 'silver', NOW() - INTERVAL '2 MONTH', NOW() + INTERVAL '22 MONTH', NOW(), NOW()),
+('77777777-7777-aaaa-7777-777777777777', 'dddddddd-aaaa-dddd-aaaa-ddddddddddd1', 'LC-0007-2023', 'active', '99999999-cccc-9999-cccc-999999999999', 260, 'gold', NOW() - INTERVAL '5 MONTH', NOW() + INTERVAL '19 MONTH', NOW(), NOW()),
+('88888888-8888-aaaa-8888-888888888888', 'ffffffff-aaaa-ffff-aaaa-fffffffffff1', 'LC-0008-2023', 'active', 'ffffffff-cccc-ffff-cccc-ffffffffffff', 580, 'platinum', NOW() - INTERVAL '8 MONTH', NOW() + INTERVAL '16 MONTH', NOW(), NOW()),
+('99999999-9999-aaaa-9999-999999999999', '22222222-bbbb-2222-bbbb-222222222222', 'LC-0009-2023', 'active', 'eeeeeeee-cccc-eeee-cccc-eeeeeeeeeeee', 75, 'silver', NOW() - INTERVAL '4 MONTH', NOW() + INTERVAL '20 MONTH', NOW(), NOW()),
+('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1', '44444444-bbbb-4444-bbbb-444444444444', 'LC-0010-2023', 'active', '99999999-cccc-9999-cccc-999999999999', 180, 'gold', NOW() - INTERVAL '7 MONTH', NOW() + INTERVAL '17 MONTH', NOW(), NOW()),
+('bbbbbbbb-bbbb-aaaa-bbbb-bbbbbbbbbbb1', '66666666-aaaa-6666-aaaa-666666666666', 'LC-0011-2023', 'active', '33333333-cccc-3333-cccc-333333333333', 50, 'bronze', NOW() - INTERVAL '2 MONTH', NOW() + INTERVAL '22 MONTH', NOW(), NOW()),
+('cccccccc-cccc-aaaa-cccc-ccccccccccc1', 'eeeeeeee-aaaa-eeee-aaaa-eeeeeeeeeee1', 'LC-0012-2023', 'active', '33333333-cccc-3333-cccc-333333333333', 30, 'bronze', NOW() - INTERVAL '1 MONTH', NOW() + INTERVAL '23 MONTH', NOW(), NOW()),
+('dddddddd-dddd-aaaa-dddd-ddddddddddd1', '44444444-aaaa-4444-aaaa-444444444444', 'LC-0013-2022', 'expired', 'eeeeeeee-cccc-eeee-cccc-eeeeeeeeeeee', 200, 'silver', NOW() - INTERVAL '2 YEAR', NOW() - INTERVAL '2 MONTH', NOW(), NOW()),
+('eeeeeeee-eeee-aaaa-eeee-eeeeeeeeeee1', '22222222-aaaa-2222-aaaa-222222222222', 'LC-0014-2022', 'inactive', 'eeeeeeee-cccc-eeee-cccc-eeeeeeeeeeee', 40, 'bronze', NOW() - INTERVAL '18 MONTH', NOW() + INTERVAL '6 MONTH', NOW(), NOW()),
+('ffffffff-ffff-aaaa-ffff-fffffffffff1', '88888888-aaaa-8888-aaaa-888888888888', 'LC-0015-2023', 'suspended', 'eeeeeeee-cccc-eeee-cccc-eeeeeeeeeeee', 110, 'silver', NOW() - INTERVAL '9 MONTH', NOW() + INTERVAL '15 MONTH', NOW(), NOW());
+
+-- Заполнение таблицы schedule
+INSERT INTO schedule (id, performance_id, hall_id, start_time, base_price, created_at, updated_at) VALUES
+('11111111-1111-bbbb-1111-111111111111', '11111111-eeee-1111-eeee-111111111111', '11111111-dddd-1111-dddd-111111111111', NOW() + INTERVAL '1 DAY' + INTERVAL '19 HOUR', 1500.00, NOW(), NOW()),
+('22222222-2222-bbbb-2222-222222222222', '22222222-eeee-2222-eeee-222222222222', '22222222-dddd-2222-dddd-222222222222', NOW() + INTERVAL '1 DAY' + INTERVAL '18 HOUR', 1200.00, NOW(), NOW()),
+('33333333-3333-bbbb-3333-333333333333', '33333333-eeee-3333-eeee-333333333333', '11111111-dddd-1111-dddd-111111111111', NOW() + INTERVAL '2 DAY' + INTERVAL '19 HOUR', 1800.00, NOW(), NOW()),
+('44444444-4444-bbbb-4444-444444444444', '44444444-eeee-4444-eeee-444444444444', '22222222-dddd-2222-dddd-222222222222', NOW() + INTERVAL '2 DAY' + INTERVAL '18 HOUR', 1300.00, NOW(), NOW()),
+('55555555-5555-bbbb-5555-555555555555', '55555555-eeee-5555-eeee-555555555555', '33333333-dddd-3333-dddd-333333333333', NOW() + INTERVAL '3 DAY' + INTERVAL '19 HOUR', 900.00, NOW(), NOW()),
+('66666666-6666-bbbb-6666-666666666666', '66666666-eeee-6666-eeee-666666666666', '11111111-dddd-1111-dddd-111111111111', NOW() + INTERVAL '3 DAY' + INTERVAL '18 HOUR', 2000.00, NOW(), NOW()),
+('77777777-7777-bbbb-7777-777777777777', '77777777-eeee-7777-eeee-777777777777', '44444444-dddd-4444-dddd-444444444444', NOW() + INTERVAL '4 DAY' + INTERVAL '19 HOUR', 800.00, NOW(), NOW()),
+('88888888-8888-bbbb-8888-888888888888', '88888888-eeee-8888-eeee-888888888888', '55555555-dddd-5555-dddd-555555555555', NOW() + INTERVAL '4 DAY' + INTERVAL '18 HOUR', 700.00, NOW(), NOW()),
+('99999999-9999-bbbb-9999-999999999999', '99999999-eeee-9999-eeee-999999999999', '11111111-dddd-1111-dddd-111111111111', NOW() + INTERVAL '5 DAY' + INTERVAL '19 HOUR', 1600.00, NOW(), NOW()),
+('aaaaaaaa-aaaa-bbbb-aaaa-aaaaaaaaaaa1', 'aaaaaaaa-eeee-aaaa-eeee-aaaaaaaaaaaa', '22222222-dddd-2222-dddd-222222222222', NOW() + INTERVAL '5 DAY' + INTERVAL '18 HOUR', 1100.00, NOW(), NOW()),
+('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 'bbbbbbbb-eeee-bbbb-eeee-bbbbbbbbbbbb', '33333333-dddd-3333-dddd-333333333333', NOW() + INTERVAL '6 DAY' + INTERVAL '19 HOUR', 950.00, NOW(), NOW()),
+('cccccccc-cccc-bbbb-cccc-ccccccccccc1', 'cccccccc-eeee-cccc-eeee-cccccccccccc', '66666666-dddd-6666-dddd-666666666666', NOW() + INTERVAL '6 DAY' + INTERVAL '18 HOUR', 1400.00, NOW(), NOW()),
+('dddddddd-dddd-bbbb-dddd-ddddddddddd1', 'dddddddd-eeee-dddd-eeee-dddddddddddd', '11111111-dddd-1111-dddd-111111111111', NOW() + INTERVAL '7 DAY' + INTERVAL '19 HOUR', 1700.00, NOW(), NOW()),
+('eeeeeeee-eeee-bbbb-eeee-eeeeeeeeeee1', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', '77777777-dddd-7777-dddd-777777777777', NOW() + INTERVAL '7 DAY' + INTERVAL '18 HOUR', 1000.00, NOW(), NOW()),
+('ffffffff-ffff-bbbb-ffff-fffffffffff1', 'ffffffff-eeee-ffff-eeee-ffffffffffff', '88888888-dddd-8888-dddd-888888888888', NOW() + INTERVAL '8 DAY' + INTERVAL '19 HOUR', 850.00, NOW(), NOW()),
+('11111111-1111-cccc-1111-111111111111', '11111111-ffff-1111-ffff-111111111111', '11111111-dddd-1111-dddd-111111111111', NOW() + INTERVAL '8 DAY' + INTERVAL '18 HOUR', 1550.00, NOW(), NOW()),
+('22222222-2222-cccc-2222-222222222222', '22222222-ffff-2222-ffff-222222222222', '22222222-dddd-2222-dddd-222222222222', NOW() + INTERVAL '9 DAY' + INTERVAL '19 HOUR', 1250.00, NOW(), NOW()),
+('33333333-3333-cccc-3333-333333333333', '33333333-ffff-3333-ffff-333333333333', '33333333-dddd-3333-dddd-333333333333', NOW() + INTERVAL '9 DAY' + INTERVAL '18 HOUR', 950.00, NOW(), NOW()),
+('44444444-4444-cccc-4444-444444444444', '44444444-ffff-4444-ffff-444444444444', '44444444-dddd-4444-dddd-444444444444', NOW() + INTERVAL '10 DAY' + INTERVAL '19 HOUR', 750.00, NOW(), NOW()),
+('55555555-5555-cccc-5555-555555555555', '55555555-ffff-5555-ffff-555555555555', '55555555-dddd-5555-dddd-555555555555', NOW() + INTERVAL '10 DAY' + INTERVAL '18 HOUR', 650.00, NOW(), NOW()); 

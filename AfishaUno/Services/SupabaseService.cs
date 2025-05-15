@@ -1447,5 +1447,343 @@ public class SupabaseService : ISupabaseService
             return obj.Id.GetHashCode();
         }
     }
+
+    // Отчеты
+    public async Task<Report> CreateReportAsync(Report report)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(report.Id))
+            {
+                report.Id = Guid.NewGuid().ToString();
+            }
+            
+            var response = await _client.From<Report>().Insert(report);
+            
+            if (response?.Models?.Count > 0)
+            {
+                return response.Models[0];
+            }
+            
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка создания отчета: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<List<Report>> GetReportsAsync()
+    {
+        try
+        {
+            // Используем корректное значение порядка сортировки вместо логического значения
+            var ordering = Supabase.Postgrest.Constants.Ordering.Descending;
+            
+            var response = await _client.From<Report>()
+                .Order("created_at", ordering)
+                .Get();
+                
+            return response?.Models ?? new List<Report>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка получения отчетов: {ex.Message}");
+            return new List<Report>();
+        }
+    }
+
+    public async Task<Report> GetReportByIdAsync(string reportId)
+    {
+        try
+        {
+            var response = await _client.From<Report>()
+                .Where(r => r.Id == reportId)
+                .Get();
+                
+            return response?.Models?.FirstOrDefault();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка получения отчета: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task DeleteReportAsync(string reportId)
+    {
+        try
+        {
+            await _client.From<Report>()
+                .Where(r => r.Id == reportId)
+                .Delete();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка удаления отчета: {ex.Message}");
+            throw;
+        }
+    }
+
+    public async Task<List<Ticket>> GetTicketsByDateRangeAsync(DateTime startDate, DateTime endDate)
+    {
+        try
+        {
+            var response = await _client.From<Ticket>()
+                .Where(t => t.CreatedAt >= startDate && t.CreatedAt <= endDate)
+                .Get();
+
+            // Загружаем дополнительные данные для отчета
+            var tickets = response?.Models ?? new List<Ticket>();
+            if (tickets.Any())
+            {
+                // Получаем список уникальных идентификаторов расписаний
+                var scheduleIds = tickets.Select(t => t.ScheduleId).Distinct().ToList();
+                
+                // Получаем данные о расписании для билетов
+                var schedules = await GetScheduleDetailsByIdsAsync(scheduleIds);
+                
+                // Устанавливаем ссылки на расписание в билетах
+                foreach (var ticket in tickets)
+                {
+                    ticket.Schedule = schedules.FirstOrDefault(s => s.Id == ticket.ScheduleId);
+                }
+            }
+                
+            return tickets;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка получения билетов за период: {ex.Message}");
+            return new List<Ticket>();
+        }
+    }
+
+    public async Task<List<Schedule>> GetScheduleByDateRangeAsync(DateTime startDate, DateTime endDate)
+    {
+        try
+        {
+            var response = await _client.From<Schedule>()
+                .Where(s => s.StartTime >= startDate && s.StartTime <= endDate)
+                .Get();
+
+            // Загружаем дополнительные данные для отчета
+            var schedules = response?.Models ?? new List<Schedule>();
+            if (schedules.Any())
+            {
+                // Загружаем данные о спектаклях
+                var performanceIds = schedules.Select(s => s.PerformanceId).Distinct().ToList();
+                var performances = await GetPerformancesByIdsAsync(performanceIds);
+
+                // Загружаем данные о залах
+                var hallIds = schedules.Select(s => s.HallId).Distinct().ToList();
+                var halls = await GetHallsByIdsAsync(hallIds);
+
+                // Устанавливаем ссылки на спектакли и залы
+                foreach (var schedule in schedules)
+                {
+                    schedule.Performance = performances.FirstOrDefault(p => p.Id == schedule.PerformanceId);
+                    schedule.Hall = halls.FirstOrDefault(h => h.Id == schedule.HallId);
+                }
+            }
+                
+            return schedules;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка получения расписания за период: {ex.Message}");
+            return new List<Schedule>();
+        }
+    }
+
+    public async Task<List<Ticket>> GetTicketsByScheduleIdsAsync(List<string> scheduleIds)
+    {
+        try
+        {
+            if (scheduleIds == null || !scheduleIds.Any())
+                return new List<Ticket>();
+
+            // Преобразуем строковые ID в Guid
+            var guidIds = scheduleIds.Select(id => Guid.Parse(id)).ToList();
+            
+            // К сожалению, Supabase C# SDK не поддерживает оператор IN напрямую, 
+            // поэтому нам нужно сделать несколько запросов и объединить результаты
+            var tickets = new List<Ticket>();
+            
+            foreach (var batch in guidIds.Chunk(10)) // Обрабатываем по 10 ID за раз
+            {
+                var batchTickets = new List<Ticket>();
+                
+                foreach (var scheduleId in batch)
+                {
+                    var response = await _client.From<Ticket>()
+                        .Where(t => t.ScheduleId == scheduleId)
+                        .Get();
+                        
+                    if (response?.Models != null)
+                    {
+                        batchTickets.AddRange(response.Models);
+                    }
+                }
+                
+                tickets.AddRange(batchTickets);
+            }
+            
+            return tickets;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка получения билетов по ID расписаний: {ex.Message}");
+            return new List<Ticket>();
+        }
+    }
+
+    // Вспомогательные методы для отчетов
+    private async Task<List<Schedule>> GetScheduleDetailsByIdsAsync(List<Guid> scheduleIds)
+    {
+        try
+        {
+            var schedules = new List<Schedule>();
+            
+            // Обрабатываем по 10 ID за раз
+            foreach (var batch in scheduleIds.Chunk(10))
+            {
+                foreach (var scheduleId in batch)
+                {
+                    var schedule = await GetScheduleDetailsAsync(scheduleId);
+                    if (schedule != null)
+                    {
+                        schedules.Add(schedule);
+                    }
+                }
+            }
+            
+            return schedules;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка получения данных расписания: {ex.Message}");
+            return new List<Schedule>();
+        }
+    }
+
+    private async Task<List<Performance>> GetPerformancesByIdsAsync(List<Guid> performanceIds)
+    {
+        try
+        {
+            var performances = new List<Performance>();
+            
+            // Обрабатываем по 10 ID за раз
+            foreach (var batch in performanceIds.Chunk(10))
+            {
+                foreach (var performanceId in batch)
+                {
+                    var response = await _client.From<Performance>()
+                        .Where(p => p.Id == performanceId)
+                        .Get();
+                        
+                    if (response?.Models?.Count > 0)
+                    {
+                        performances.Add(response.Models[0]);
+                    }
+                }
+            }
+            
+            return performances;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка получения данных спектаклей: {ex.Message}");
+            return new List<Performance>();
+        }
+    }
+
+    private async Task<List<Hall>> GetHallsByIdsAsync(List<Guid> hallIds)
+    {
+        try
+        {
+            var halls = new List<Hall>();
+            
+            // Обрабатываем по 10 ID за раз
+            foreach (var batch in hallIds.Chunk(10))
+            {
+                foreach (var hallId in batch)
+                {
+                    var response = await _client.From<Hall>()
+                        .Where(h => h.Id == hallId)
+                        .Get();
+                        
+                    if (response?.Models?.Count > 0)
+                    {
+                        halls.Add(response.Models[0]);
+                    }
+                }
+            }
+            
+            return halls;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка получения данных залов: {ex.Message}");
+            return new List<Hall>();
+        }
+    }
+
+    public async Task<List<Ticket>> GetTicketsByPerformanceAsync(Guid performanceId, bool? isReversedOrder = null)
+    {
+        try
+        {
+            // Определяем порядок сортировки на основе параметра
+            var ordering = isReversedOrder == true ? 
+                Supabase.Postgrest.Constants.Ordering.Descending : 
+                Supabase.Postgrest.Constants.Ordering.Ascending;
+                
+            var response = await _client.From<Ticket>()
+                .Filter("schedule.performance_id", Supabase.Postgrest.Constants.Operator.Equals, performanceId)
+                .Order("created_at", ordering)
+                .Get();
+
+            return response.Models;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Ошибка при получении билетов для спектакля {performanceId}");
+            return new List<Ticket>();
+        }
+    }
+
+    public async Task<List<Ticket>> GetTicketsForPeriodAsync(DateTime startDate, DateTime endDate, List<Guid>? performanceIds = null)
+    {
+        try
+        {
+            // Получаем все расписания за указанный период
+            var schedules = await GetScheduleByDateRangeAsync(startDate, endDate);
+            
+            // Если указаны идентификаторы спектаклей, фильтруем расписания
+            if (performanceIds != null && performanceIds.Any())
+            {
+                schedules = schedules.Where(s => performanceIds.Contains(s.PerformanceId)).ToList();
+            }
+            
+            if (!schedules.Any())
+            {
+                return new List<Ticket>();
+            }
+            
+            // Получаем идентификаторы расписаний
+            var scheduleIds = schedules.Select(s => s.Id.ToString()).ToList();
+            
+            // Получаем билеты по расписаниям
+            var tickets = await GetTicketsByScheduleIdsAsync(scheduleIds);
+            
+            return tickets;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Ошибка при получении билетов за период с {startDate:dd.MM.yyyy} по {endDate:dd.MM.yyyy}");
+            return new List<Ticket>();
+        }
+    }
 }
 

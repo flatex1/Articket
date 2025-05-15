@@ -40,5 +40,20 @@ namespace AfishaUno.Services
         Task<bool> AddPointsToLoyaltyCardAsync(Guid cardId, int points);
         Task<List<Customer>> GetCustomersAsync();
         Task<List<Customer>> SearchCustomersAsync(string searchTerm);
+        Task<Report> CreateReportAsync(Report report);
+        Task<List<Report>> GetReportsAsync();
+        Task<Report> GetReportByIdAsync(string reportId);
+        Task DeleteReportAsync(string reportId);
+        Task<List<Ticket>> GetTicketsByDateRangeAsync(DateTime startDate, DateTime endDate);
+        Task<List<Schedule>> GetScheduleByDateRangeAsync(DateTime startDate, DateTime endDate);
+        Task<List<Ticket>> GetTicketsByScheduleIdsAsync(List<string> scheduleIds);
+        /// <summary>
+        /// Получает все билеты за указанный период времени
+        /// </summary>
+        /// <param name="startDate">Начальная дата периода</param>
+        /// <param name="endDate">Конечная дата периода</param>
+        /// <param name="performanceIds">Опциональный список идентификаторов спектаклей для фильтрации</param>
+        /// <returns>Список билетов за указанный период</returns>
+        Task<List<Ticket>> GetTicketsForPeriodAsync(DateTime startDate, DateTime endDate, List<Guid>? performanceIds = null);
     }
 } 
