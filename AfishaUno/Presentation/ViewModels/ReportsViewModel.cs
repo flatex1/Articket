@@ -321,23 +321,31 @@ namespace AfishaUno.Presentation.ViewModels
         /// </summary>
         private async Task<byte[]> GenerateReportDataAsync()
         {
-            // Получение текущего пользователя
-            var currentUser = _supabaseService.CurrentUser;
-            if (currentUser == null)
-                throw new InvalidOperationException("Пользователь не авторизован");
-
-            // Преобразование DateTimeOffset в DateTime для запросов к базе данных
-            DateTime startDate = StartDate.Date;
-            DateTime endDate = EndDate.Date.AddDays(1).AddTicks(-1); // Конец дня
-
-            // Генерация соответствующего отчета
-            if (SelectedReportTypeIndex == 0) // Отчет о продажах
+            try
             {
-                return await _reportService.GenerateSalesReportAsync(startDate, endDate, currentUser);
+                // Получение текущего пользователя
+                var currentUser = _supabaseService.CurrentUser;
+                if (currentUser == null)
+                    throw new InvalidOperationException("Пользователь не авторизован");
+
+                // Преобразование DateTimeOffset в DateTime для запросов к базе данных
+                DateTime startDate = StartDate.Date;
+                DateTime endDate = EndDate.Date.AddDays(1).AddTicks(-1); // Конец дня
+
+                // Генерация соответствующего отчета
+                if (SelectedReportTypeIndex == 0) // Отчет о продажах
+                {
+                    return await _reportService.GenerateSalesReportAsync(startDate, endDate, currentUser);
+                }
+                else // Отчет о посещаемости
+                {
+                    return await _reportService.GeneratePerformanceReportAsync(startDate, endDate, currentUser);
+                }
             }
-            else // Отчет о посещаемости
+            catch (Exception ex)
             {
-                return await _reportService.GeneratePerformanceReportAsync(startDate, endDate, currentUser);
+                SetStatus($"Ошибка при формировании отчета: {ex.Message}", Colors.Red);
+                return null;
             }
         }
 

@@ -22,10 +22,10 @@ namespace AfishaUno.Services.Documents
 
         public SalesReportDocument(List<Ticket> tickets, DateTime startDate, DateTime endDate, User generatedBy, string title = null)
         {
-            _tickets = tickets ?? throw new ArgumentNullException(nameof(tickets));
+            _tickets = tickets ?? new List<Ticket>();
             _startDate = startDate;
             _endDate = endDate;
-            _generatedBy = generatedBy ?? throw new ArgumentNullException(nameof(generatedBy));
+            _generatedBy = generatedBy ?? throw new ArgumentNullException(nameof(generatedBy), "Пользователь не может быть null");
             _title = title ?? $"Отчет о продажах билетов за период {startDate:dd.MM.yyyy} - {endDate:dd.MM.yyyy}";
         }
 
