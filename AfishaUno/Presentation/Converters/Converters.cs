@@ -106,6 +106,8 @@ namespace AfishaUno.Presentation.Converters
                     return new SolidColorBrush(Colors.Yellow);
                 case "Sold":
                     return new SolidColorBrush(Colors.Red);
+                case "Reserved":
+                    return new SolidColorBrush(Colors.DeepSkyBlue);
                 default:
                     return new SolidColorBrush(Colors.Gray);
             }

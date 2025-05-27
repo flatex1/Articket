@@ -62,6 +62,7 @@ namespace AfishaUno.Presentation.ViewModels
         public ICommand SearchCustomerCommand { get; }
         public ICommand CreateLoyaltyCardCommand { get; }
         public ICommand SelectCustomerCommand { get; }
+        public ICommand PreviousStepCommand { get; }
 
         // Свойства
         public Schedule Schedule
@@ -229,6 +230,7 @@ namespace AfishaUno.Presentation.ViewModels
             SearchCustomerCommand = new AsyncRelayCommand(SearchCustomerAsync);
             CreateLoyaltyCardCommand = new AsyncRelayCommand(CreateLoyaltyCardAsync);
             SelectCustomerCommand = new RelayCommand<Customer?>(OnSelectCustomer);
+            PreviousStepCommand = new AsyncRelayCommand(OnCancel);
 
             // Начальные значения
             TicketTypes = new ObservableCollection<string>

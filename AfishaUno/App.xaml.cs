@@ -78,7 +78,6 @@ public partial class App : Application
     /// </summary>
     private void ConfigureServices()
     {
-        // Загрузка конфигурации
         var builder = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -88,7 +87,6 @@ public partial class App : Application
 
         var services = new ServiceCollection();
 
-        // Регистрация сервисов
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: true)
             .Build();
@@ -99,14 +97,12 @@ public partial class App : Application
         services.AddSingleton<ITicketPrintService, TicketPrintService>();
         services.AddSingleton<IReportService, ReportService>();
 
-        // Добавляем логирование
         services.AddLogging(builder =>
         {
             builder.AddConsole();
             builder.AddDebug();
         });
 
-        // Регистрация ViewModels
         services.AddTransient<LoginViewModel>();
         services.AddTransient<MainViewModel>();
         services.AddTransient<HomeViewModel>();
@@ -119,7 +115,6 @@ public partial class App : Application
         services.AddTransient<CustomerSearchViewModel>();
         services.AddTransient<ReportsViewModel>();
         
-        // Регистрация статических сервисов для работы с выбранными объектами
         services.AddSingleton<CustomerSelectionManager>();
 
         _serviceProvider = services.BuildServiceProvider();
@@ -130,42 +125,33 @@ public partial class App : Application
     /// </summary>
     protected override void OnLaunched(LaunchActivatedEventArgs e)
     {
-        // Инициализируем сервисы, если они еще не инициализированы
         if (_serviceProvider == null)
         {
             ConfigureServices();
         }
 
-        // Конфигурация маршрутов навигации
         ConfigureNavigation(_serviceProvider!);
         
-        // Создаем окно
         _window = new Window();
         
-        // Создаем или получаем корневой фрейм
         _rootFrame = _window.Content as Frame;
         
-        // Если у нас еще нет фрейма, создаем его
         if (_rootFrame == null)
         {
             _rootFrame = new Frame();
             _window.Content = _rootFrame;
         }
 
-        // Настраиваем навигационный сервис
         var navigationService = Services.GetService<INavigationService>();
         if (navigationService != null)
         {
             navigationService.Frame = _rootFrame;
         }
 
-        // Активируем окно перед навигацией для предотвращения проблем с ForegroundWindow
         _window.Activate();
 
-        // Навигация на стартовую страницу
         if (_rootFrame.Content == null)
         {
-            // Переходим на страницу входа
             _rootFrame.Navigate(typeof(LoginPage));
         }
     }
@@ -187,6 +173,7 @@ public partial class App : Application
         navigationService.Configure("RegisterPage", typeof(RegisterPage));
         navigationService.Configure("AddPerformancePage", typeof(AddPerformancePage));
         navigationService.Configure("ReportsPage", typeof(ReportsPage));
+        navigationService.Configure("UsersPage", typeof(AfishaUno.Presentation.Pages.UsersPage));
     }
 }
 

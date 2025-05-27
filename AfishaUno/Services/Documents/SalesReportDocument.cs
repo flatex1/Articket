@@ -53,10 +53,7 @@ namespace AfishaUno.Services.Documents
                 // Заголовок отчета
                 column.Item().Row(row =>
                 {
-                    row.RelativeItem().Text("ARTICKET")
-                        .FontSize(18)
-                        .Bold()
-                        .FontColor(Colors.Blue.Medium);
+                    row.RelativeItem().Height(40).Image(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Images", "logo.png"));
 
                     row.RelativeItem().AlignRight().Text("ОТЧЕТ О ПРОДАЖАХ")
                         .FontSize(16)

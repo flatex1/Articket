@@ -25,426 +25,522 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Индикатор этапов и кнопка назад -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-            <Button Content="Назад" 
-                    Command="{x:Bind ViewModel.CancelCommand}" 
-                    Margin="0,0,20,0"/>
-            <TextBlock Text="Шаг 3 из 3: Оформление билета" 
-                     VerticalAlignment="Center"
-                     Style="{StaticResource SubtitleTextBlockStyle}"/>
-        </StackPanel>
+        <!-- Индикатор этапов -->
+        <TextBlock Grid.Row="0" 
+                 Text="Шаг 3 из 3: Оформление билета" 
+                 Style="{StaticResource SubtitleTextBlockStyle}"
+                 HorizontalAlignment="Center"
+                 Margin="0,0,0,10"/>
 
         <!-- Заголовок и информация о спектакле и выбранном месте -->
         <StackPanel Grid.Row="1" Margin="0,0,0,20">
             <TextBlock Text="Оформление билета" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,10"/>
             <TextBlock Text="{x:Bind ViewModel.Schedule.Performance.Title, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}"/>
-            <TextBlock>
-                <Run Text="Зал: "/>
-                <Run Text="{x:Bind ViewModel.Schedule.Hall.Name, Mode=OneWay}"/>
-            </TextBlock>
-            <TextBlock>
-                <Run Text="Дата и время: "/>
-                <Run Text="{x:Bind ViewModel.Schedule.StartTime, Mode=OneWay}"/>
-            </TextBlock>
-            <TextBlock>
-                <Run Text="Выбранное место: "/>
-                <Run Text="{x:Bind ViewModel.SelectedSeat.Category, Mode=OneWay}"/>
-                <Run Text=", ряд "/>
-                <Run Text="{x:Bind ViewModel.SelectedSeat.RowNumber, Mode=OneWay}"/>
-                <Run Text=", место "/>
-                <Run Text="{x:Bind ViewModel.SelectedSeat.SeatNumber, Mode=OneWay}"/>
-            </TextBlock>
+            <Grid Margin="0,5,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Зал: " Margin="0,0,5,0"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.Schedule.Hall.Name, Mode=OneWay}"/>
+                
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Дата и время: " Margin="0,0,5,0"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.Schedule.StartTime, Mode=OneWay}"/>
+                
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Выбранное место: " Margin="0,0,5,0"/>
+                <TextBlock Grid.Row="2" Grid.Column="1">
+                    <Run Text="{x:Bind ViewModel.SelectedSeat.Category, Mode=OneWay}"/>
+                    <Run Text=", ряд "/>
+                    <Run Text="{x:Bind ViewModel.SelectedSeat.RowNumber, Mode=OneWay}"/>
+                    <Run Text=", место "/>
+                    <Run Text="{x:Bind ViewModel.SelectedSeat.SeatNumber, Mode=OneWay}"/>
+                </TextBlock>
+            </Grid>
         </StackPanel>
 
-        <!-- Секция оформления билета -->
-        <Grid Grid.Row="2" Margin="0,0,0,20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            
-            <!-- Параметры билета -->
-            <Grid Grid.Row="0" Margin="0,0,0,20">
+        <!-- Основное содержимое с прокруткой -->
+        <ScrollViewer Grid.Row="2" 
+                     HorizontalScrollBarVisibility="Auto" 
+                     VerticalScrollBarVisibility="Auto"
+                     Padding="0,0,0,10">
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-
-                <TextBlock Grid.Row="0" Text="Параметры билета" 
-                         Style="{StaticResource SubtitleTextBlockStyle}" 
-                         Margin="0,0,0,10"/>
-
-                <!-- Выбор типа билета -->
-                <ComboBox Grid.Row="1" Header="Тип билета" 
-                         SelectedItem="{x:Bind ViewModel.SelectedTicketType, Mode=TwoWay}"
-                         ItemsSource="{x:Bind ViewModel.TicketTypes, Mode=OneWay}"
-                         HorizontalAlignment="Stretch"
-                         Margin="0,0,0,10"/>
-
-                <!-- Выбор категории скидки -->
-                <ComboBox Grid.Row="2" Header="Категория скидки" 
-                         SelectedItem="{x:Bind ViewModel.SelectedDiscountCategory, Mode=TwoWay}"
-                         ItemsSource="{x:Bind ViewModel.DiscountCategories, Mode=OneWay}"
-                         DisplayMemberPath="Name"
-                         HorizontalAlignment="Stretch"
-                         Margin="0,0,0,10"/>
-
-                <!-- Цена билета (с учетом скидки) -->
-                <Grid Grid.Row="3" Margin="0,0,0,0">
+                
+                <!-- Верхняя часть с параметрами билета и информацией о клиенте -->
+                <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="320"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*" MinWidth="300"/>
                     </Grid.ColumnDefinitions>
                     
-                    <TextBlock Grid.Column="0" Text="Итоговая цена билета:" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Column="1" HorizontalAlignment="Right" FontWeight="SemiBold">
-                        <Run Text="{x:Bind ViewModel.FinalPrice, Mode=OneWay}"/>
-                        <Run Text=" руб."/>
-                    </TextBlock>
-                </Grid>
-            </Grid>
-
-            <!-- Клиент и карта лояльности -->
-            <Grid Grid.Row="1" Margin="0,0,0,20">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <TextBlock Grid.Row="0" Text="Информация о клиенте" 
-                         Style="{StaticResource SubtitleTextBlockStyle}" 
-                         Margin="0,0,0,10"/>
-
-                <!-- Секция для поиска существующего клиента -->
-                <Grid Grid.Row="1" Margin="0,0,0,10"
-                      Visibility="{x:Bind ViewModel.IsCustomerSearchVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverse}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- Информация о выбранном клиенте -->
-                    <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 
-                               Visibility="{x:Bind ViewModel.SelectedCustomer, Mode=OneWay, Converter={StaticResource ObjectToIsNotNullConverter}}"
-                               Margin="0,0,0,10">
-                        <TextBlock FontWeight="SemiBold" Text="Выбранный клиент:"/>
-                        <TextBlock Text="{x:Bind ViewModel.SelectedCustomer.FullName, Mode=OneWay}"/>
-                        <TextBlock Text="{x:Bind ViewModel.SelectedCustomer.Phone, Mode=OneWay}"/>
-                        <TextBlock Text="{x:Bind ViewModel.SelectedCustomer.Email, Mode=OneWay}" 
-                                 Visibility="{x:Bind ViewModel.SelectedCustomer.Email, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}"/>
-                    </StackPanel>
-
-                    <!-- Форма для клиента -->
-                    <TextBox Grid.Row="1" Grid.Column="0" 
-                           Header="ФИО клиента" 
-                           Text="{x:Bind ViewModel.CustomerName, Mode=TwoWay}"
-                           PlaceholderText="Введите ФИО клиента"
-                           Margin="0,0,10,10"/>
-
-                    <TextBox Grid.Row="2" Grid.Column="0" 
-                           Header="Телефон клиента" 
-                           Text="{x:Bind ViewModel.CustomerPhone, Mode=TwoWay}"
-                           PlaceholderText="+7 (___) ___-__-__"
-                           Margin="0,0,10,0"/>
-
-                    <Button Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" 
-                          Content="Поиск клиента" 
-                          Click="SearchCustomerButton_Click"
-                          VerticalAlignment="Bottom"/>
-                </Grid>
-
-                <!-- Окно поиска клиентов -->
-                <Grid Grid.Row="1" Margin="0,0,0,10"
-                      Visibility="{x:Bind ViewModel.IsCustomerSearchVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    
-                    <TextBlock Grid.Row="0" Text="Поиск клиента" 
-                             Style="{StaticResource SubtitleTextBlockStyle}" 
-                             Margin="0,0,0,10"/>
-                    
-                    <!-- Панель поиска -->
-                    <Grid Grid.Row="1" Margin="0,0,0,10"
-                          Visibility="{x:Bind ViewModel.CustomerSearchViewModel.ShowCreateNewCustomer, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverse}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <TextBox Grid.Column="0" 
-                               PlaceholderText="Введите имя, телефон или email клиента"
-                               Text="{x:Bind ViewModel.CustomerSearchViewModel.SearchTerm, Mode=TwoWay}"
-                               KeyDown="CustomerSearchTextBox_KeyDown"
-                               Margin="0,0,10,0"/>
-                        
-                        <Button Grid.Column="1" 
-                              Content="Поиск" 
-                              Command="{x:Bind ViewModel.CustomerSearchViewModel.SearchCustomersCommand}"
-                              Margin="0,0,10,0"/>
-                        
-                        <Button Grid.Column="2" 
-                              Content="Создать нового" 
-                              Click="CreateNewCustomerButton_Click"/>
-                    </Grid>
-                    
-                    <!-- Форма для создания нового клиента -->
-                    <Grid Grid.Row="1" Margin="0,0,0,10"
-                          Visibility="{x:Bind ViewModel.CustomerSearchViewModel.ShowCreateNewCustomer, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <!-- ЛЕВАЯ КОЛОНКА: Параметры билета -->
+                    <Grid Grid.Column="0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Параметры билета" 
+                                  Style="{StaticResource SubtitleTextBlockStyle}" 
+                                  Margin="0,0,0,15"/>
+
+                        <!-- Выбор типа билета -->
+                        <ComboBox Grid.Row="1" Header="Тип билета" 
+                                 SelectedItem="{x:Bind ViewModel.SelectedTicketType, Mode=TwoWay}"
+                                 ItemsSource="{x:Bind ViewModel.TicketTypes, Mode=OneWay}"
+                                 HorizontalAlignment="Stretch"
+                                 Margin="0,0,0,15"/>
+
+                        <!-- Выбор категории скидки -->
+                        <ComboBox Grid.Row="2" Header="Категория скидки" 
+                                 SelectedItem="{x:Bind ViewModel.SelectedDiscountCategory, Mode=TwoWay}"
+                                 ItemsSource="{x:Bind ViewModel.DiscountCategories, Mode=OneWay}"
+                                 DisplayMemberPath="Name"
+                                 HorizontalAlignment="Stretch"
+                                 Margin="0,0,0,15"/>
+
+                        <!-- Цена билета (с учетом скидки) -->
+                        <Border Grid.Row="3" 
+                               Background="#F0F8FF"
+                               BorderBrush="#BBDEFB" 
+                               BorderThickness="1"
+                               CornerRadius="8"
+                               Padding="15,12"
+                               Margin="0,10,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBlock Grid.Column="0" Text="Итоговая цена билета:" 
+                                         VerticalAlignment="Center" 
+                                         FontWeight="SemiBold"/>
+                                <TextBlock Grid.Column="1" 
+                                         HorizontalAlignment="Right" 
+                                         FontWeight="Bold" 
+                                         FontSize="18"
+                                         Foreground="{ThemeResource SystemAccentColor}">
+                                    <Run Text="{x:Bind ViewModel.FinalPrice, Mode=OneWay}"/>
+                                    <Run Text=" руб."/>
+                                </TextBlock>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <!-- Разделитель -->
+                    <Rectangle Grid.Column="1" 
+                              Fill="#E0E0E0" 
+                              Width="1" 
+                              HorizontalAlignment="Center"
+                              Margin="0,40,0,0"
+                              VerticalAlignment="Stretch"/>
+
+                    <!-- ПРАВАЯ КОЛОНКА: Информация о клиенте -->
+                    <Grid Grid.Column="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" 
-                                 Text="Создание нового клиента" 
+
+                        <TextBlock Grid.Row="0" Text="Информация о клиенте" 
                                  Style="{StaticResource SubtitleTextBlockStyle}" 
-                                 Margin="0,0,0,10"/>
+                                 Margin="0,0,0,15"/>
+
+                        <!-- Секция для поиска существующего клиента -->
+                        <Grid Grid.Row="1" Margin="0,0,0,15"
+                             Visibility="{x:Bind ViewModel.IsCustomerSearchVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverse}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Информация о выбранном клиенте -->
+                            <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" 
+                                      Visibility="{x:Bind ViewModel.SelectedCustomer, Mode=OneWay, Converter={StaticResource ObjectToIsNotNullConverter}}"
+                                      Margin="0,0,0,10">
+                                <TextBlock FontWeight="SemiBold" Text="Выбранный клиент:"/>
+                                <TextBlock Text="{x:Bind ViewModel.SelectedCustomer.FullName, Mode=OneWay}"/>
+                                <TextBlock Text="{x:Bind ViewModel.SelectedCustomer.Phone, Mode=OneWay}"/>
+                                <TextBlock Text="{x:Bind ViewModel.SelectedCustomer.Email, Mode=OneWay}" 
+                                        Visibility="{x:Bind ViewModel.SelectedCustomer.Email, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}"/>
+                            </StackPanel>
+
+                            <!-- Форма для клиента -->
+                            <TextBox Grid.Row="1" Grid.Column="0" 
+                                   Header="ФИО клиента" 
+                                   Text="{x:Bind ViewModel.CustomerName, Mode=TwoWay}"
+                                   PlaceholderText="Введите ФИО клиента"
+                                   Margin="0,0,10,10"/>
+
+                            <TextBox Grid.Row="2" Grid.Column="0" 
+                                   Header="Телефон клиента" 
+                                   Text="{x:Bind ViewModel.CustomerPhone, Mode=TwoWay}"
+                                   PlaceholderText="+7 (___) ___-__-__"
+                                   Margin="0,0,10,0"/>
+
+                            <Button Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" 
+                                  Content="Поиск клиента" 
+                                  Click="SearchCustomerButton_Click"
+                                  VerticalAlignment="Bottom"/>
+                        </Grid>
                         
-                        <!-- Поля для нового клиента -->
-                        <TextBox Grid.Row="1" Grid.ColumnSpan="2" 
-                               Header="ФИО клиента *" 
-                               Text="{x:Bind ViewModel.CustomerSearchViewModel.NewCustomerFullName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                               PlaceholderText="Введите полное имя"
-                               Margin="0,0,0,10"/>
-                        
-                        <TextBox Grid.Row="2" Grid.Column="0" 
-                               Header="Телефон *" 
-                               Text="{x:Bind ViewModel.CustomerSearchViewModel.NewCustomerPhone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                               PlaceholderText="+7 (___) ___-__-__"
-                               Margin="0,0,10,10"/>
-                        
-                        <TextBox Grid.Row="2" Grid.Column="1" 
-                               Header="Email" 
-                               Text="{x:Bind ViewModel.CustomerSearchViewModel.NewCustomerEmail, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                               PlaceholderText="mail@example.com"
-                               Margin="0,0,0,10"/>
-                        
-                        <DatePicker Grid.Row="3" Grid.Column="0" 
-                                  Header="Дата рождения"
-                                  Date="{x:Bind ViewModel.CustomerSearchViewModel.NewCustomerBirthDate, Mode=TwoWay, Converter={StaticResource NullableDateTimeToDateTimeOffsetConverter}}"
-                                  Margin="0,0,10,10"/>
-                        
-                        <ComboBox Grid.Row="3" Grid.Column="1" 
-                                Header="Тип документа"
-                                PlaceholderText="Выберите тип документа"
-                                SelectedItem="{x:Bind ViewModel.CustomerSearchViewModel.SelectedDocumentTypeItem, Mode=TwoWay}"
-                                SelectionChanged="DocumentType_SelectionChanged"
-                                Margin="0,0,0,10">
-                            <ComboBoxItem Content="Паспорт РФ" Tag="passport_rf"/>
-                            <ComboBoxItem Content="Загранпаспорт" Tag="foreign_passport"/>
-                            <ComboBoxItem Content="Водительское удостоверение" Tag="drivers_license"/>
-                            <ComboBoxItem Content="Студенческий билет" Tag="student_id"/>
-                            <ComboBoxItem Content="Пенсионное удостоверение" Tag="pension_id"/>
-                            <ComboBoxItem Content="Военный билет" Tag="military_id"/>
-                            <ComboBoxItem Content="Другое" Tag="other"/>
-                        </ComboBox>
-                        
-                        <TextBox Grid.Row="4" Grid.ColumnSpan="2" 
-                               Header="Номер документа" 
-                               Text="{x:Bind ViewModel.CustomerSearchViewModel.NewCustomerDocumentNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                               PlaceholderText="Введите номер документа"
-                               Margin="0,0,0,10"/>
-                        
-                        <TextBox Grid.Row="5" Grid.ColumnSpan="2" 
-                               Header="Примечания" 
-                               Text="{x:Bind ViewModel.CustomerSearchViewModel.NewCustomerNotes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                               PlaceholderText="Дополнительная информация о клиенте"
-                               TextWrapping="Wrap"
-                               AcceptsReturn="True"
-                               Height="80"
-                               Margin="0,0,0,10"/>
-                        
-                        <!-- Кнопки управления -->
-                        <StackPanel Grid.Row="6" Grid.ColumnSpan="2" 
-                                  Orientation="Horizontal" 
-                                  HorizontalAlignment="Right" 
-                                  Margin="0,10,0,0">
-                            <Button Content="Отмена" 
-                                  Click="CancelCreateCustomerButton_Click"
-                                  Margin="0,0,10,0"/>
-                            <Button Content="Создать клиента" 
-                                  Click="SaveNewCustomerButton_Click"
-                                  Background="{ThemeResource AccentButtonBackground}"
-                                  Foreground="{ThemeResource AccentButtonForeground}"/>
-                        </StackPanel>
-                    </Grid>
-                    
-                    <!-- Список результатов -->
-                    <ListView Grid.Row="2" 
-                           ItemsSource="{x:Bind ViewModel.CustomerSearchViewModel.SearchResults, Mode=OneWay}"
-                           SelectedItem="{x:Bind ViewModel.CustomerSearchViewModel.SelectedCustomer, Mode=TwoWay}"
-                           SelectionMode="Single"
-                           MaxHeight="300"
-                           BorderThickness="1"
-                           BorderBrush="{ThemeResource ApplicationForegroundThemeBrush}"
-                           Margin="0,0,0,10"
-                           Visibility="{x:Bind ViewModel.CustomerSearchViewModel.ShowCreateNewCustomer, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverse}">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="models:Customer">
-                                <StackPanel Margin="0,5">
-                                    <TextBlock Text="{x:Bind FullName}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{x:Bind Phone}"/>
-                                    <TextBlock Text="{x:Bind Email}" 
-                                             Visibility="{x:Bind Email, Converter={StaticResource StringToVisibilityConverter}}"/>
+                        <!-- Окно поиска клиентов -->
+                        <Grid Grid.Row="1" Margin="0,0,0,15"
+                              Visibility="{x:Bind ViewModel.IsCustomerSearchVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Grid.Row="0" Text="Поиск клиента" 
+                                     Style="{StaticResource SubtitleTextBlockStyle}" 
+                                     Margin="0,0,0,10"/>
+                            
+                            <!-- Панель поиска -->
+                            <Grid Grid.Row="1" Margin="0,0,0,10"
+                                 Visibility="{x:Bind ViewModel.CustomerSearchViewModel.ShowCreateNewCustomer, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverse}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBox Grid.Column="0" 
+                                       PlaceholderText="Введите имя, телефон или email клиента"
+                                       Text="{x:Bind ViewModel.CustomerSearchViewModel.SearchTerm, Mode=TwoWay}"
+                                       KeyDown="CustomerSearchTextBox_KeyDown"
+                                       Margin="0,0,10,0"/>
+                                
+                                <Button Grid.Column="1" 
+                                      Content="Поиск" 
+                                      Command="{x:Bind ViewModel.CustomerSearchViewModel.SearchCustomersCommand}"
+                                      Margin="0,0,10,0"/>
+                                
+                                <Button Grid.Column="2" 
+                                      Content="Создать нового" 
+                                      Click="CreateNewCustomerButton_Click"/>
+                            </Grid>
+                            
+                            <!-- Форма для создания нового клиента -->
+                            <Grid Grid.Row="1" Margin="0,0,0,10"
+                                 Visibility="{x:Bind ViewModel.CustomerSearchViewModel.ShowCreateNewCustomer, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBlock Grid.Row="0" Grid.ColumnSpan="2" 
+                                         Text="Создание нового клиента" 
+                                         Style="{StaticResource SubtitleTextBlockStyle}" 
+                                         Margin="0,0,0,10"/>
+                                
+                                <!-- Поля для нового клиента -->
+                                <TextBox Grid.Row="1" Grid.ColumnSpan="2" 
+                                       Header="ФИО клиента *" 
+                                       Text="{x:Bind ViewModel.CustomerSearchViewModel.NewCustomerFullName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                       PlaceholderText="Введите полное имя"
+                                       Margin="0,0,0,10"/>
+                                
+                                <TextBox Grid.Row="2" Grid.Column="0" 
+                                       Header="Телефон *" 
+                                       Text="{x:Bind ViewModel.CustomerSearchViewModel.NewCustomerPhone, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                       PlaceholderText="+7 (___) ___-__-__"
+                                       Margin="0,0,10,10"/>
+                                
+                                <TextBox Grid.Row="2" Grid.Column="1" 
+                                       Header="Email" 
+                                       Text="{x:Bind ViewModel.CustomerSearchViewModel.NewCustomerEmail, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                       PlaceholderText="mail@example.com"
+                                       Margin="0,0,0,10"/>
+                                
+                                <DatePicker Grid.Row="3" Grid.Column="0" 
+                                          Header="Дата рождения"
+                                          Date="{x:Bind ViewModel.CustomerSearchViewModel.NewCustomerBirthDate, Mode=TwoWay, Converter={StaticResource NullableDateTimeToDateTimeOffsetConverter}}"
+                                          Margin="0,0,10,10"/>
+                                
+                                <ComboBox Grid.Row="3" Grid.Column="1" 
+                                        Header="Тип документа"
+                                        PlaceholderText="Выберите тип документа"
+                                        SelectedItem="{x:Bind ViewModel.CustomerSearchViewModel.SelectedDocumentTypeItem, Mode=TwoWay}"
+                                        SelectionChanged="DocumentType_SelectionChanged"
+                                        Margin="0,0,0,10">
+                                    <ComboBoxItem Content="Паспорт РФ" Tag="passport_rf"/>
+                                    <ComboBoxItem Content="Загранпаспорт" Tag="foreign_passport"/>
+                                    <ComboBoxItem Content="Водительское удостоверение" Tag="drivers_license"/>
+                                    <ComboBoxItem Content="Студенческий билет" Tag="student_id"/>
+                                    <ComboBoxItem Content="Пенсионное удостоверение" Tag="pension_id"/>
+                                    <ComboBoxItem Content="Военный билет" Tag="military_id"/>
+                                    <ComboBoxItem Content="Другое" Tag="other"/>
+                                </ComboBox>
+                                
+                                <TextBox Grid.Row="4" Grid.ColumnSpan="2" 
+                                       Header="Номер документа" 
+                                       Text="{x:Bind ViewModel.CustomerSearchViewModel.NewCustomerDocumentNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                       PlaceholderText="Введите номер документа"
+                                       Margin="0,0,0,10"/>
+                                
+                                <TextBox Grid.Row="5" Grid.ColumnSpan="2" 
+                                       Header="Примечания" 
+                                       Text="{x:Bind ViewModel.CustomerSearchViewModel.NewCustomerNotes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                       PlaceholderText="Дополнительная информация о клиенте"
+                                       TextWrapping="Wrap"
+                                       AcceptsReturn="True"
+                                       Height="80"
+                                       Margin="0,0,0,10"/>
+                                
+                                <!-- Кнопки управления -->
+                                <StackPanel Grid.Row="6" Grid.ColumnSpan="2" 
+                                          Orientation="Horizontal" 
+                                          HorizontalAlignment="Right" 
+                                          Margin="0,10,0,0">
+                                    <Button Content="Отмена" 
+                                          Click="CancelCreateCustomerButton_Click"
+                                          Margin="0,0,10,0"/>
+                                    <Button Content="Создать клиента" 
+                                          Click="SaveNewCustomerButton_Click"
+                                          Background="{ThemeResource AccentButtonBackground}"
+                                          Foreground="{ThemeResource AccentButtonForeground}"/>
                                 </StackPanel>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                        <ListView.ItemContainerStyle>
-                            <Style TargetType="ListViewItem">
-                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                            </Style>
-                        </ListView.ItemContainerStyle>
-                    </ListView>
-                    
-                    <!-- Кнопки действий -->
-                    <Grid Grid.Row="3">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <TextBlock Grid.Column="0" 
-                                 Text="{x:Bind ViewModel.CustomerSearchViewModel.ErrorMessage, Mode=OneWay}"
-                                 Foreground="Red"
-                                 VerticalAlignment="Center"
-                                 Visibility="{x:Bind ViewModel.CustomerSearchViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}"/>
-                        
-                        <Button Grid.Column="1" 
-                              Content="Отмена" 
-                              Click="ToggleCustomerSearch"
-                              Margin="0,0,10,0"/>
-                        
-                        <Button Grid.Column="2" 
-                              Content="Выбрать клиента" 
-                              Click="SelectCustomerFromSearchButton_Click"
-                              IsEnabled="{x:Bind ViewModel.CustomerSearchViewModel.SelectedCustomer, Mode=OneWay, Converter={StaticResource ObjectToIsNotNullConverter}}"
-                              Visibility="{x:Bind ViewModel.CustomerSearchViewModel.ShowCreateNewCustomer, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverse}"/>
+                            </Grid>
+                            
+                            <!-- Список результатов -->
+                            <ListView Grid.Row="2" 
+                                    ItemsSource="{x:Bind ViewModel.CustomerSearchViewModel.SearchResults, Mode=OneWay}"
+                                    SelectedItem="{x:Bind ViewModel.CustomerSearchViewModel.SelectedCustomer, Mode=TwoWay}"
+                                    SelectionMode="Single"
+                                    MaxHeight="300"
+                                    BorderThickness="1"
+                                    BorderBrush="{ThemeResource ApplicationForegroundThemeBrush}"
+                                    Margin="0,0,0,10"
+                                    Visibility="{x:Bind ViewModel.CustomerSearchViewModel.ShowCreateNewCustomer, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverse}">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:Customer">
+                                        <StackPanel Margin="0,5">
+                                            <TextBlock Text="{x:Bind FullName}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{x:Bind Phone}"/>
+                                            <TextBlock Text="{x:Bind Email}" 
+                                                     Visibility="{x:Bind Email, Converter={StaticResource StringToVisibilityConverter}}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    </Style>
+                                </ListView.ItemContainerStyle>
+                            </ListView>
+                            
+                            <!-- Кнопки действий -->
+                            <Grid Grid.Row="3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBlock Grid.Column="0" 
+                                         Text="{x:Bind ViewModel.CustomerSearchViewModel.ErrorMessage, Mode=OneWay}"
+                                         Foreground="Red"
+                                         VerticalAlignment="Center"
+                                         Visibility="{x:Bind ViewModel.CustomerSearchViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}"/>
+                                
+                                <Button Grid.Column="1" 
+                                      Content="Отмена" 
+                                      Click="ToggleCustomerSearch"
+                                      Margin="0,0,10,0"/>
+                                
+                                <Button Grid.Column="2" 
+                                      Content="Выбрать клиента" 
+                                      Click="SelectCustomerFromSearchButton_Click"
+                                      IsEnabled="{x:Bind ViewModel.CustomerSearchViewModel.SelectedCustomer, Mode=OneWay, Converter={StaticResource ObjectToIsNotNullConverter}}"
+                                      Visibility="{x:Bind ViewModel.CustomerSearchViewModel.ShowCreateNewCustomer, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Inverse}"/>
+                            </Grid>
+                        </Grid>
+
+                        <!-- Информация о карте лояльности -->
+                        <Grid Grid.Row="2" 
+                             Visibility="{x:Bind ViewModel.SelectedCustomer, Mode=OneWay, Converter={StaticResource ObjectToIsNotNullConverter}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Grid.Row="0"
+                                     Text="Карта лояльности"
+                                     Style="{StaticResource SubtitleTextBlockStyle}" 
+                                     FontSize="20"
+                                     Margin="0,0,0,15"/>
+                            
+                            <!-- Выбор карты лояльности -->
+                            <Border Grid.Row="1"
+                                   Background="#F7F7F7" 
+                                   CornerRadius="8" 
+                                   Padding="15" 
+                                   BorderThickness="1" 
+                                   BorderBrush="#E0E0E0"
+                                   Margin="0,0,0,15"
+                                   Visibility="{x:Bind ViewModel.CustomerLoyaltyCards, Mode=OneWay, Converter={StaticResource ObjectToIsNotNullConverter}}">
+                                <StackPanel>
+                                    <TextBlock Text="Выберите карту лояльности клиента:" 
+                                             FontWeight="SemiBold" 
+                                             Margin="0,0,0,10"/>
+                                    <ComboBox ItemsSource="{x:Bind ViewModel.CustomerLoyaltyCards, Mode=OneWay}"
+                                            SelectedItem="{x:Bind ViewModel.SelectedLoyaltyCard, Mode=TwoWay}"
+                                            HorizontalAlignment="Stretch"
+                                            Margin="0,0,0,5"
+                                            PlaceholderText="Выберите карту лояльности">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate x:DataType="models:LoyaltyCard">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{x:Bind CardNumber}" Margin="0,0,10,0"/>
+                                                    <TextBlock Text="{x:Bind Status}" Opacity="0.7"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Две колонки: информация о карте и кнопка создания -->
+                            <Grid Grid.Row="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- Информация о выбранной карте -->
+                                <Border Grid.Column="0"
+                                       Background="#F0F8FF" 
+                                       CornerRadius="8" 
+                                       Padding="15" 
+                                       BorderThickness="1" 
+                                       BorderBrush="#BBDEFB"
+                                       Visibility="{x:Bind ViewModel.SelectedLoyaltyCard, Mode=OneWay, Converter={StaticResource ObjectToIsNotNullConverter}}"
+                                       Margin="0,0,10,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Информация о карте:" 
+                                                 FontWeight="SemiBold" 
+                                                 Margin="0,0,0,10"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Номер карты:" Margin="0,0,10,5" Opacity="0.7"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.SelectedLoyaltyCard.CardNumber, Mode=OneWay}" FontWeight="SemiBold"/>
+                                            
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Баллы:" Margin="0,0,10,5" Opacity="0.7"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.SelectedLoyaltyCard.Points, Mode=OneWay}" FontWeight="SemiBold"/>
+                                            
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Уровень:" Margin="0,0,10,5" Opacity="0.7"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind ViewModel.SelectedLoyaltyCard.Level, Mode=OneWay}" FontWeight="SemiBold"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                                
+                                <!-- Создание новой карты -->
+                                <Button Grid.Column="1"
+                                      Content="Создать новую&#x0a;карту лояльности"
+                                      Command="{x:Bind ViewModel.CreateLoyaltyCardCommand}"
+                                      VerticalAlignment="Top"
+                                      HorizontalAlignment="Right"
+                                      Background="{ThemeResource SystemAccentColor}"
+                                      Foreground="White"
+                                      CornerRadius="4"
+                                      Padding="12,8"
+                                      Visibility="{x:Bind ViewModel.ShowCreateLoyaltyCard, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            </Grid>
+                        </Grid>
                     </Grid>
                 </Grid>
-
-                <!-- Информация о карте лояльности -->
-                <Grid Grid.Row="2" 
-                    Visibility="{x:Bind ViewModel.SelectedCustomer, Mode=OneWay, Converter={StaticResource ObjectToIsNotNullConverter}}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    
-                    <TextBlock Grid.Row="0" 
-                             Text="Карта лояльности"
-                             Style="{StaticResource SubtitleTextBlockStyle}" 
-                             Margin="0,0,0,10"/>
-                    
-                    <!-- Выбор карты лояльности -->
-                    <ComboBox Grid.Row="1"
-                           ItemsSource="{x:Bind ViewModel.CustomerLoyaltyCards, Mode=OneWay}"
-                           SelectedItem="{x:Bind ViewModel.SelectedLoyaltyCard, Mode=TwoWay}"
-                           HorizontalAlignment="Stretch"
-                           Margin="0,0,0,10"
-                           PlaceholderText="Выберите карту лояльности"
-                           Visibility="{x:Bind ViewModel.CustomerLoyaltyCards, Mode=OneWay, Converter={StaticResource ObjectToIsNotNullConverter}}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate x:DataType="models:LoyaltyCard">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{x:Bind CardNumber}" Margin="0,0,10,0"/>
-                                    <TextBlock Text="{x:Bind Status}" Opacity="0.7"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    
-                    <!-- Информация о выбранной карте -->
-                    <StackPanel Grid.Row="2" 
-                              Visibility="{x:Bind ViewModel.SelectedLoyaltyCard, Mode=OneWay, Converter={StaticResource ObjectToIsNotNullConverter}}"
-                              Margin="0,0,0,10">
-                        <TextBlock>
-                            <Run Text="Номер карты: "/>
-                            <Run Text="{x:Bind ViewModel.SelectedLoyaltyCard.CardNumber, Mode=OneWay}"/>
-                        </TextBlock>
-                        <TextBlock>
-                            <Run Text="Баллы: "/>
-                            <Run Text="{x:Bind ViewModel.SelectedLoyaltyCard.Points, Mode=OneWay}"/>
-                        </TextBlock>
-                        <TextBlock>
-                            <Run Text="Уровень: "/>
-                            <Run Text="{x:Bind ViewModel.SelectedLoyaltyCard.Level, Mode=OneWay}"/>
-                        </TextBlock>
-                    </StackPanel>
-                    
-                    <!-- Создание новой карты -->
-                    <Button Grid.Row="2"
-                          Content="Создать новую карту лояльности"
-                          Command="{x:Bind ViewModel.CreateLoyaltyCardCommand}"
-                          HorizontalAlignment="Left"
-                          Visibility="{x:Bind ViewModel.ShowCreateLoyaltyCard, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"
-                          Margin="0,5,0,0"/>
-                </Grid>
             </Grid>
+        </ScrollViewer>
 
-            <!-- Кнопки действий -->
-            <Grid Grid.Row="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                
-                <StackPanel Grid.Column="0" Orientation="Vertical">
-                    <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
-                             Foreground="Red"
-                             TextWrapping="Wrap"
-                             VerticalAlignment="Center"
-                             Visibility="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}"/>
-                             
-                    <!-- Добавляем TextBlock для отображения статуса -->
-                    <TextBlock x:Name="StatusTextBlock"
-                             TextWrapping="Wrap"
-                             FontWeight="SemiBold"
-                             FontSize="16"
-                             Margin="0,5,0,0"
-                             Visibility="Collapsed"/>
-                </StackPanel>
-                
-                <Button Grid.Column="1" 
-                      Content="Отмена" 
-                      Command="{x:Bind ViewModel.CancelCommand}"
-                      Margin="0,0,10,0"/>
-                
-                <Button Grid.Column="2" 
-                      Content="Оформить билет" 
-                      Command="{x:Bind ViewModel.ConfirmTicketCommand}"/>
-            </Grid>
+        <!-- Кнопки действий внизу страницы -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Кнопка "Назад" -->
+            <Button Grid.Column="0" 
+                  Content="Назад" 
+                  Command="{x:Bind ViewModel.PreviousStepCommand}"
+                  Margin="0,0,10,0"/>
+            
+            <StackPanel Grid.Column="1" Orientation="Vertical">
+                <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                         Foreground="Red"
+                         TextWrapping="Wrap"
+                         VerticalAlignment="Center"
+                         Visibility="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}"/>
+                         
+                <!-- Текстовый блок для отображения статуса -->
+                <TextBlock x:Name="StatusTextBlock"
+                         TextWrapping="Wrap"
+                         FontWeight="SemiBold"
+                         FontSize="16"
+                         Margin="0,5,0,0"
+                         Visibility="Collapsed"/>
+            </StackPanel>
+            
+            <Button Grid.Column="2" 
+                  Content="Отмена" 
+                  Command="{x:Bind ViewModel.CancelCommand}"
+                  Margin="0,0,10,0"/>
+            
+            <Button Grid.Column="3" 
+                  Content="Оформить билет" 
+                  Command="{x:Bind ViewModel.ConfirmTicketCommand}"
+                  Background="{ThemeResource SystemAccentColor}"
+                  Foreground="White"
+                  CornerRadius="4"
+                  Padding="12,8"/>
         </Grid>
 
         <!-- Прогресс загрузки -->

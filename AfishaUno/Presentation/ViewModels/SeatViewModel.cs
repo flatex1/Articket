@@ -27,6 +27,8 @@ namespace AfishaUno.Presentation.ViewModels
         public int SeatNumber => _seat.SeatNumber;
         public string Category => _seat.Category;
 
+        public Ticket Ticket { get; set; }
+
         public SeatViewModel(Seat seat)
         {
             _seat = seat;

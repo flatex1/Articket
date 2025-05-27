@@ -2,6 +2,8 @@ using System.Diagnostics;
 using AfishaUno.Services;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using System;
 
 namespace AfishaUno.Presentation.ViewModels
 {
@@ -31,6 +33,7 @@ namespace AfishaUno.Presentation.ViewModels
         private ObservableCollection<MenuItem> _menuItems = new();
 
         public IRelayCommand<string> NavigateCommand { get; }
+        public IRelayCommand LogoutCommand { get; }
 
         public HomeViewModel(
             ISupabaseService supabaseService,
@@ -44,6 +47,7 @@ namespace AfishaUno.Presentation.ViewModels
             _logger = logger;
 
             NavigateCommand = new RelayCommand<string>(OnNavigate);
+            LogoutCommand = new AsyncRelayCommand(LogoutAsync);
 
             UpdateUserInfo();
         }
@@ -80,6 +84,22 @@ namespace AfishaUno.Presentation.ViewModels
             }
 
             _logger.LogInformation($"Обновлена информация о пользователе: IsLoggedIn={IsLoggedIn}, Role={UserRole}");
+        }
+
+        private async Task LogoutAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Выход из системы");
+                await _supabaseService.LogoutAsync();
+                UpdateUserInfo();
+                _navigationService.NavigateTo("LoginPage");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Ошибка при выходе из системы: {ex.Message}");
+                Trace.WriteLine($"Ошибка при выходе из системы: {ex.Message}");
+            }
         }
 
         private void FillMenuItems(string role)

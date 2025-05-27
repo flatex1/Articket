@@ -71,6 +71,10 @@
                 <Rectangle Width="20" Height="20" Fill="Red"/>
                 <TextBlock Text="Занято" VerticalAlignment="Center"/>
             </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="5">
+                <Rectangle Width="20" Height="20" Fill="DeepSkyBlue"/>
+                <TextBlock Text="Забронировано" VerticalAlignment="Center"/>
+            </StackPanel>
         </StackPanel>
 
         <!-- Места по категориям -->
@@ -293,10 +297,15 @@
                 <Button Content="Назад" 
                         Command="{x:Bind ViewModel.CancelCommand}" 
                         Margin="0,0,10,0"/>
-            <Button Content="Продать билет" 
-                    Command="{x:Bind ViewModel.SellTicketCommand}" 
-                    IsEnabled="{x:Bind ViewModel.SelectedSeat, Mode=OneWay, Converter={StaticResource ObjectToIsNotNullConverter}}"/>
-        </StackPanel>
+                <Button Content="Продать билет" 
+                        Command="{x:Bind ViewModel.SellTicketCommand}" 
+                        IsEnabled="{x:Bind ViewModel.SelectedSeat, Mode=OneWay, Converter={StaticResource ObjectToIsNotNullConverter}}"
+                        Margin="0,0,10,0"/>
+                <Button Content="Забронировать" 
+                        Command="{x:Bind ViewModel.ReserveTicketCommand}" 
+                        IsEnabled="{x:Bind ViewModel.CanReserveTicket, Mode=OneWay}"
+                        Margin="0,0,10,0"/>
+            </StackPanel>
         </Grid>
 
         <!-- Прогресс загрузки -->
@@ -315,5 +324,41 @@
                    VerticalAlignment="Center"
                    TextWrapping="Wrap"
                    Visibility="{x:Bind ViewModel.ErrorMessage, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}"/>
+
+        <!-- Диалог возврата билета -->
+        <ContentDialog x:Name="RefundDialog"
+                       Title="Возврат билета"
+                       IsPrimaryButtonEnabled="True"
+                       PrimaryButtonText="Вернуть билет"
+                       PrimaryButtonCommand="{Binding ViewModel.RefundTicketCommand, ElementName=SelectSeatRoot}"
+                       IsSecondaryButtonEnabled="True"
+                       SecondaryButtonText="Отмена">
+            <StackPanel>
+                <TextBlock Text="Информация о билете:" FontWeight="Bold" Margin="0,0,0,10"/>
+                <TextBlock>
+                    <Run Text="Место: "/>
+                    <Run Text="{Binding ViewModel.SelectedSeat.SeatNumber, ElementName=SelectSeatRoot}"/>
+                </TextBlock>
+                <TextBlock>
+                    <Run Text="Ряд: "/>
+                    <Run Text="{Binding ViewModel.SelectedSeat.RowNumber, ElementName=SelectSeatRoot}"/>
+                </TextBlock>
+                <TextBlock>
+                    <Run Text="Цена: "/>
+                    <Run Text="{Binding ViewModel.SelectedTicket.Price, ElementName=SelectSeatRoot}"/>
+                    <Run Text=" руб."/>
+                </TextBlock>
+                <TextBlock>
+                    <Run Text="Статус: "/>
+                    <Run Text="{Binding ViewModel.SelectedTicket.Status, ElementName=SelectSeatRoot}"/>
+                </TextBlock>
+                <TextBlock Text="Сумма возврата:" FontWeight="Bold" Margin="0,10,0,0"/>
+                <TextBlock>
+                    <Run Text="{Binding ViewModel.RefundAmount, ElementName=SelectSeatRoot}"/>
+                    <Run Text=" руб."/>
+                </TextBlock>
+                <TextBlock Text="{Binding ViewModel.RefundMessage, ElementName=SelectSeatRoot}" Foreground="Gray" Margin="0,5,0,0"/>
+            </StackPanel>
+        </ContentDialog>
     </Grid>
 </Page>

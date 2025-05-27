@@ -35,11 +35,9 @@
                     Width="340" 
                     Spacing="15">
             
-                <TextBlock Text="ARTICKET" 
-                       FontSize="28"
-                       FontWeight="Bold"
-                       Margin="0,0,0,10"
-                       Foreground="{StaticResource ApplicationPrimaryBrush}"
+                <Image Source="ms-appx:///Assets/Images/logo.png" 
+                       Height="60" 
+                       Margin="0,0,0,10" 
                        HorizontalAlignment="Center"/>
                 
                 <TextBlock Text="Авторизация в системе" 

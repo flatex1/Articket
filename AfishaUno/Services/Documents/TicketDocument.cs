@@ -61,9 +61,7 @@ namespace AfishaUno.Services.Documents
                             // Название театра
                             column.Item().PaddingVertical(5).Row(row =>
                             {
-                                row.RelativeItem().Text("Театральная касса «ARTICKET»")
-                                    .FontSize(14)
-                                    .Bold();
+                                row.RelativeItem().Height(30).Image(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Images", "logo.png"));
                             });
 
                             // Информация о спектакле

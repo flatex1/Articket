@@ -1,0 +1,59 @@
+<Page
+    x:Class="AfishaUno.Presentation.Pages.UsersPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:viewmodels="using:AfishaUno.Presentation.ViewModels"
+    xmlns:converters="using:AfishaUno.Presentation.Converters"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid Padding="30" x:Name="PageRoot">
+        <StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                <Button Content="← Назад"
+                        Width="100"
+                        Margin="0,0,20,0"
+                        Command="{Binding GoBackCommand}"/>
+                <TextBlock Text="Пользователи" FontSize="28" FontWeight="Bold" VerticalAlignment="Center"/>
+            </StackPanel>
+            <Button Content="Добавить пользователя"
+                    Command="{Binding AddUserCommand}"
+                    Width="220"
+                    Margin="0,0,0,20"/>
+            <ListView ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedUser, Mode=TwoWay}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Text="{Binding FullName}" FontSize="18" Width="200"/>
+                            <TextBlock Text="{Binding Role}" FontSize="16" Width="120" Margin="20,0,0,0"/>
+                            <Button Content="Редактировать" Command="{Binding DataContext.EditUserCommand, ElementName=PageRoot}" CommandParameter="{Binding}" Margin="10,0,0,0"/>
+                            <Button Content="Удалить" Command="{Binding DataContext.DeleteUserCommand, ElementName=PageRoot}" CommandParameter="{Binding}" Margin="10,0,0,0"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackPanel>
+
+        <!-- Диалог добавления/редактирования пользователя -->
+        <ContentDialog x:Name="UserDialog"
+                       Title="{Binding DialogTitle}"
+                       IsPrimaryButtonEnabled="True"
+                       PrimaryButtonText="Сохранить"
+                       SecondaryButtonText="Отмена"
+                       PrimaryButtonCommand="{Binding SaveUserCommand}"
+                       SecondaryButtonCommand="{Binding CancelDialogCommand}">
+            <StackPanel>
+                <TextBox Header="ФИО" Text="{Binding EditingUser.FullName, Mode=TwoWay}" Margin="0,0,0,10"/>
+                <TextBox Header="Email" Text="{Binding EditingUser.Email, Mode=TwoWay}" Margin="0,0,0,10"/>
+                <ComboBox Header="Роль"
+                          SelectedValue="{Binding EditingUser.Role, Mode=TwoWay}"
+                          SelectedValuePath="Tag"
+                          DisplayMemberPath="Content"
+                          Margin="0,0,0,10">
+                    <ComboBoxItem Content="Администратор" Tag="admin"/>
+                    <ComboBoxItem Content="Кассир" Tag="cashier"/>
+                </ComboBox>
+                <PasswordBox Header="Пароль" Password="{Binding NewUserPassword, Mode=TwoWay}" Visibility="{Binding IsPasswordVisible, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+            </StackPanel>
+        </ContentDialog>
+    </Grid>
+</Page> 

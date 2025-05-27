@@ -1785,5 +1785,51 @@ public class SupabaseService : ISupabaseService
             return new List<Ticket>();
         }
     }
+
+    public async Task<AfishaUno.Models.User> AddUserAsync(string email, string password, string fullName, string role)
+    {
+        return await CreateUserAsync(email, password, fullName, role);
+    }
+
+    public async Task<AfishaUno.Models.User> UpdateUserAsync(AfishaUno.Models.User user)
+    {
+        try
+        {
+            user.UpdatedAt = DateTime.UtcNow;
+            var response = await _client.From<AfishaUno.Models.User>().Update(user);
+            if (response?.Models?.Count > 0)
+                return response.Models[0];
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка обновления пользователя: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task DeleteUserAsync(Guid userId)
+    {
+        try
+        {
+            await _client.From<AfishaUno.Models.User>().Where(u => u.Id == userId).Delete();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка удаления пользователя: {ex.Message}");
+        }
+    }
+
+    public async Task DeleteTicketAsync(Guid ticketId)
+    {
+        try
+        {
+            await _client.From<Ticket>().Where(t => t.Id == ticketId).Delete();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка удаления билета: {ex.Message}");
+        }
+    }
 }
 

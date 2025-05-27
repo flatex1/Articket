@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using CommunityToolkit.Mvvm.Input;
 
 namespace AfishaUno.Presentation.ViewModels
 {
@@ -9,6 +10,7 @@ namespace AfishaUno.Presentation.ViewModels
     {
         private readonly ISupabaseService _supabaseService;
         private readonly INavigationService _navigationService;
+        private readonly IAuthorizationService _authorizationService;
 
         [ObservableProperty]
         private Schedule _schedule;
@@ -43,18 +45,57 @@ namespace AfishaUno.Presentation.ViewModels
         [ObservableProperty]
         private ObservableCollection<SeatViewModel> _rightBoxSeats = new();
 
+        [ObservableProperty]
+        private Ticket _selectedTicket;
+
+        [ObservableProperty]
+        private decimal _refundAmount;
+
+        [ObservableProperty]
+        private string _refundMessage;
+
+        [ObservableProperty]
+        private bool _canRefund;
+
         public IRelayCommand SelectSeatCommand { get; }
         public IAsyncRelayCommand SellTicketCommand { get; }
         public IRelayCommand CancelCommand { get; }
+        public IRelayCommand RefundTicketCommand { get; }
+        public IAsyncRelayCommand ReserveTicketCommand { get; }
 
-        public SelectSeatViewModel(ISupabaseService supabaseService, INavigationService navigationService)
+        public bool CanReserveTicket
+        {
+            get
+            {
+                var can = ReserveTicketCommand.CanExecute(null);
+                Trace.WriteLine($"[CanReserveTicket] CanExecute(null) = {can}, Schedule: {(Schedule == null ? "null" : Schedule.StartTime.ToString())}, SelectedSeat: {(SelectedSeat == null ? "null" : SelectedSeat.Id.ToString())}, Status: {(SelectedSeat == null ? "null" : SelectedSeat.Status)}");
+                return can;
+            }
+        }
+
+        partial void OnScheduleChanged(Schedule value)
+        {
+            Trace.WriteLine($"[OnScheduleChanged] Schedule изменён: {(value == null ? "null" : value.StartTime.ToString())}");
+            OnPropertyChanged(nameof(CanReserveTicket));
+        }
+
+        partial void OnSelectedSeatChanged(SeatViewModel value)
+        {
+            Trace.WriteLine($"[OnSelectedSeatChanged] SelectedSeat изменён: {(value == null ? "null" : value.Id.ToString())}, Status: {(value == null ? "null" : value.Status)}");
+            OnPropertyChanged(nameof(CanReserveTicket));
+        }
+
+        public SelectSeatViewModel(ISupabaseService supabaseService, INavigationService navigationService, IAuthorizationService authorizationService)
         {
             _supabaseService = supabaseService;
             _navigationService = navigationService;
+            _authorizationService = authorizationService;
 
             SelectSeatCommand = new RelayCommand<SeatViewModel>(OnSelectSeat);
             SellTicketCommand = new AsyncRelayCommand(SellTicketAsync, CanSellTicket);
             CancelCommand = new RelayCommand(OnCancel);
+            RefundTicketCommand = new RelayCommand(OnRefundTicket, () => CanRefund);
+            ReserveTicketCommand = new AsyncRelayCommand(ReserveTicketAsync, CanReserve);
         }
 
         public async Task InitializeAsync(Guid scheduleId)
@@ -78,8 +119,22 @@ namespace AfishaUno.Presentation.ViewModels
                 // Получаем все места в зале
                 var allSeats = await _supabaseService.GetSeatsAsync(Schedule.HallId);
 
-                // Получаем проданные билеты
+                // Получаем все билеты (проданные и забронированные)
                 var tickets = await _supabaseService.GetTicketsAsync(scheduleId);
+
+                // --- Автоматическая отмена просроченных броней ---
+                var now = DateTime.UtcNow;
+                var daysToShow = (Schedule.StartTime.Date - now.Date).TotalDays;
+                if (daysToShow <= 3)
+                {
+                    var expiredReservations = tickets.Where(t => t.Status == TicketStatuses.Reserved).ToList();
+                    foreach (var reservation in expiredReservations)
+                    {
+                        await CancelReservationAsync(reservation);
+                    }
+                    // После отмены обновить список билетов
+                    tickets = await _supabaseService.GetTicketsAsync(scheduleId);
+                }
 
                 // Создаем модели для отображения
                 Seats.Clear();
@@ -101,6 +156,7 @@ namespace AfishaUno.Presentation.ViewModels
         private void LoadHallScheme(IEnumerable<Seat> seats, IEnumerable<Ticket> tickets)
         {
             var soldTickets = tickets.Where(t => t.Status == TicketStatuses.Sold).ToList();
+            var reservedTickets = tickets.Where(t => t.Status == TicketStatuses.Reserved).ToList();
 
             // Очищаем все коллекции
             Seats.Clear();
@@ -132,13 +188,27 @@ namespace AfishaUno.Presentation.ViewModels
                     var rowSeats = rowGroup.OrderBy(s => s.SeatNumber).ToList();
 
                     foreach (var seat in rowSeats)
-            {
+                    {
                         var seatVM = new SeatViewModel(seat);
-                        seatVM.Status = soldTickets.Any(t => t.SeatId == seat.Id) ? "Sold" : "Available";
-
+                        var ticket = soldTickets.FirstOrDefault(t => t.SeatId == seat.Id);
+                        var reserved = reservedTickets.FirstOrDefault(t => t.SeatId == seat.Id);
+                        if (ticket != null)
+                        {
+                            seatVM.Status = "Sold";
+                            seatVM.Ticket = ticket;
+                        }
+                        else if (reserved != null)
+                        {
+                            seatVM.Status = "Reserved";
+                            seatVM.Ticket = reserved;
+                        }
+                        else
+                        {
+                            seatVM.Status = "Available";
+                        }
                         BalconySeats.Add(seatVM);
-                Seats.Add(seatVM);
-            }
+                        Seats.Add(seatVM);
+                    }
                 }
             }
 
@@ -150,13 +220,27 @@ namespace AfishaUno.Presentation.ViewModels
                     var rowSeats = rowGroup.OrderBy(s => s.SeatNumber).ToList();
 
                     foreach (var seat in rowSeats)
-            {
+                    {
                         var seatVM = new SeatViewModel(seat);
-                        seatVM.Status = soldTickets.Any(t => t.SeatId == seat.Id) ? "Sold" : "Available";
-
+                        var ticket = soldTickets.FirstOrDefault(t => t.SeatId == seat.Id);
+                        var reserved = reservedTickets.FirstOrDefault(t => t.SeatId == seat.Id);
+                        if (ticket != null)
+                        {
+                            seatVM.Status = "Sold";
+                            seatVM.Ticket = ticket;
+                        }
+                        else if (reserved != null)
+                        {
+                            seatVM.Status = "Reserved";
+                            seatVM.Ticket = reserved;
+                        }
+                        else
+                        {
+                            seatVM.Status = "Available";
+                        }
                         ParterSeats.Add(seatVM);
-                Seats.Add(seatVM);
-            }
+                        Seats.Add(seatVM);
+                    }
                 }
             }
 
@@ -168,12 +252,26 @@ namespace AfishaUno.Presentation.ViewModels
                     var rowSeats = rowGroup.OrderBy(s => s.SeatNumber).ToList();
 
                     foreach (var seat in rowSeats)
-            {
+                    {
                         var seatVM = new SeatViewModel(seat);
-                        seatVM.Status = soldTickets.Any(t => t.SeatId == seat.Id) ? "Sold" : "Available";
-
+                        var ticket = soldTickets.FirstOrDefault(t => t.SeatId == seat.Id);
+                        var reserved = reservedTickets.FirstOrDefault(t => t.SeatId == seat.Id);
+                        if (ticket != null)
+                        {
+                            seatVM.Status = "Sold";
+                            seatVM.Ticket = ticket;
+                        }
+                        else if (reserved != null)
+                        {
+                            seatVM.Status = "Reserved";
+                            seatVM.Ticket = reserved;
+                        }
+                        else
+                        {
+                            seatVM.Status = "Available";
+                        }
                         AmphitheaterSeats.Add(seatVM);
-                Seats.Add(seatVM);
+                        Seats.Add(seatVM);
                     }
                 }
             }
@@ -192,10 +290,24 @@ namespace AfishaUno.Presentation.ViewModels
                     foreach (var seat in rowSeats)
                     {
                         var seatVM = new SeatViewModel(seat);
-                        seatVM.Status = soldTickets.Any(t => t.SeatId == seat.Id) ? "Sold" : "Available";
-
+                        var ticket = soldTickets.FirstOrDefault(t => t.SeatId == seat.Id);
+                        var reserved = reservedTickets.FirstOrDefault(t => t.SeatId == seat.Id);
+                        if (ticket != null)
+                        {
+                            seatVM.Status = "Sold";
+                            seatVM.Ticket = ticket;
+                        }
+                        else if (reserved != null)
+                        {
+                            seatVM.Status = "Reserved";
+                            seatVM.Ticket = reserved;
+                        }
+                        else
+                        {
+                            seatVM.Status = "Available";
+                        }
                         LeftBoxSeats.Add(seatVM);
-                    Seats.Add(seatVM);
+                        Seats.Add(seatVM);
                     }
                 }
 
@@ -207,12 +319,26 @@ namespace AfishaUno.Presentation.ViewModels
                     foreach (var seat in rowSeats)
                     {
                         var seatVM = new SeatViewModel(seat);
-                        seatVM.Status = soldTickets.Any(t => t.SeatId == seat.Id) ? "Sold" : "Available";
-
+                        var ticket = soldTickets.FirstOrDefault(t => t.SeatId == seat.Id);
+                        var reserved = reservedTickets.FirstOrDefault(t => t.SeatId == seat.Id);
+                        if (ticket != null)
+                        {
+                            seatVM.Status = "Sold";
+                            seatVM.Ticket = ticket;
+                        }
+                        else if (reserved != null)
+                        {
+                            seatVM.Status = "Reserved";
+                            seatVM.Ticket = reserved;
+                        }
+                        else
+                        {
+                            seatVM.Status = "Available";
+                        }
                         RightBoxSeats.Add(seatVM);
-                    Seats.Add(seatVM);
+                        Seats.Add(seatVM);
+                    }
                 }
-            }
             }
 
             // Выводим информацию о количестве мест в коллекциях
@@ -229,43 +355,69 @@ namespace AfishaUno.Presentation.ViewModels
         {
             try
             {
-                Trace.WriteLine($"Выбор места: {seat?.Id}, статус: {seat?.Status}");
-                
+                Trace.WriteLine($"[OnSelectSeat] seat: {(seat == null ? "null" : seat.Id.ToString())}, Status: {(seat == null ? "null" : seat.Status)}");
+
                 if (seat == null)
                 {
                     Trace.WriteLine("Выбрано пустое место (null)");
-                return;
-                }
-                    
-                if (seat.Status == "Sold")
-                {
-                    Trace.WriteLine("Место уже продано");
                     return;
                 }
 
-            // Сбрасываем выбор с предыдущего места
+                if (seat.Status == "Sold" && seat.Ticket != null)
+                {
+                    SelectedSeat = seat;
+                    SelectedTicket = seat.Ticket;
+                    CalculateRefund(seat.Ticket);
+                    // Открытие диалога произойдет через PropertyChanged
+                    return;
+                }
+                if (seat.Status == "Reserved" && seat.Ticket != null)
+                {
+                    SelectedSeat = seat;
+                    SelectedTicket = seat.Ticket;
+                    // Для забронированных билетов не открываем диалог возврата, просто выделяем
+                    return;
+                }
+
+                // Сбрасываем выбор с предыдущего места, только если оно было Selected
                 if (SelectedSeat != null && !SelectedSeat.Equals(seat))
-            {
+                {
                     Trace.WriteLine($"Сброс статуса с предыдущего места: {SelectedSeat.Id}");
-                SelectedSeat.Status = "Available";
-            }
+                    if (SelectedSeat.Status == "Selected")
+                        SelectedSeat.Status = "Available";
+                }
 
-            // Устанавливаем новое выбранное место
-            if (seat.Status == "Selected")
-            {
+                // Устанавливаем новое выбранное место
+                if (seat.Status == "Selected")
+                {
                     Trace.WriteLine($"Отмена выбора места: {seat.Id}");
-                seat.Status = "Available";
-                SelectedSeat = null;
-            }
-            else
-            {
+                    seat.Status = "Available";
+                    SelectedSeat = null;
+                }
+                else if (seat.Status == "Available")
+                {
                     Trace.WriteLine($"Выбор нового места: {seat.Id}");
-                seat.Status = "Selected";
-                SelectedSeat = seat;
-            }
+                    seat.Status = "Selected";
+                    SelectedSeat = seat;
+                }
+                else
+                {
+                    // Для Sold/Reserved просто выделяем, но не меняем статус
+                    SelectedSeat = seat;
+                }
 
-            // Обновляем доступность команды продажи
-            SellTicketCommand.NotifyCanExecuteChanged();
+                // Обновляем доступность команды продажи
+                SellTicketCommand.NotifyCanExecuteChanged();
+
+                // Сброс возврата
+                SelectedTicket = null;
+                RefundAmount = 0;
+                RefundMessage = string.Empty;
+                CanRefund = false;
+
+                OnPropertyChanged(nameof(CanReserveTicket));
+                ReserveTicketCommand.NotifyCanExecuteChanged();
+                Trace.WriteLine($"[OnSelectSeat] После обновления: CanReserveTicket = {CanReserveTicket}");
             }
             catch (Exception ex)
             {
@@ -312,6 +464,98 @@ namespace AfishaUno.Presentation.ViewModels
         private async void OnCancel()
         {
             await _navigationService.GoBackAsync();
+        }
+
+        private void CalculateRefund(Ticket ticket)
+        {
+            var now = DateTime.UtcNow;
+            var days = (Schedule.StartTime.Date - now.Date).TotalDays;
+            if (days > 10)
+            {
+                RefundAmount = ticket.Price;
+                RefundMessage = "Вернется полная стоимость билета.";
+                CanRefund = true;
+            }
+            else if (days >= 6)
+            {
+                RefundAmount = ticket.Price * 0.5m;
+                RefundMessage = "Вернется 50% стоимости билета.";
+                CanRefund = true;
+            }
+            else if (days >= 4)
+            {
+                RefundAmount = ticket.Price * 0.3m;
+                RefundMessage = "Вернется 30% стоимости билета.";
+                CanRefund = true;
+            }
+            else
+            {
+                RefundAmount = 0;
+                RefundMessage = "До спектакля осталось 3 дня или меньше — возврат невозможен.";
+                CanRefund = false;
+            }
+        }
+
+        private async void OnRefundTicket()
+        {
+            if (SelectedTicket == null || !CanRefund)
+                return;
+            // Удаляем билет из базы данных
+            await _supabaseService.DeleteTicketAsync(SelectedTicket.Id);
+            // После возврата обновить схему зала и UI
+            await InitializeAsync(Schedule.Id);
+        }
+
+        private bool CanReserve()
+        {
+            if (Schedule == null)
+            {
+                Trace.WriteLine("[CanReserve] Schedule == null");
+                return false;
+            }
+            var days = (Schedule.StartTime.Date - DateTime.UtcNow.Date).TotalDays;
+            var canReserve = days > 3 && SelectedSeat != null && SelectedSeat.Status == "Selected";
+            Trace.WriteLine($"[CanReserve] days: {days}, SelectedSeat: {(SelectedSeat == null ? "null" : SelectedSeat.Id.ToString())}, Status: {(SelectedSeat == null ? "null" : SelectedSeat.Status)}, canReserve: {canReserve}");
+            return canReserve;
+        }
+
+        private async Task ReserveTicketAsync()
+        {
+            Trace.WriteLine($"[ReserveTicketAsync] Попытка бронирования. CanReserve = {CanReserve()}, SelectedSeat: {(SelectedSeat == null ? "null" : SelectedSeat.Id.ToString())}, Schedule: {(Schedule == null ? "null" : Schedule.StartTime.ToString())}");
+            if (!CanReserve()) return;
+
+            var currentUser = _supabaseService.CurrentUser;
+            if (currentUser == null)
+            {
+                ErrorMessage = "Ошибка авторизации. Пожалуйста, войдите в систему снова.";
+                Trace.WriteLine("[ReserveTicketAsync] Ошибка: пользователь не авторизован");
+                return;
+            }
+
+            var ticket = new Ticket
+            {
+                Id = Guid.NewGuid(),
+                ScheduleId = Schedule.Id,
+                SeatId = SelectedSeat.Id,
+                Status = TicketStatuses.Reserved,
+                Price = TicketPrice,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = currentUser.Id
+            };
+            await _supabaseService.CreateTicketAsync(ticket);
+            await InitializeAsync(Schedule.Id);
+            OnPropertyChanged(nameof(CanReserveTicket));
+            ReserveTicketCommand.NotifyCanExecuteChanged();
+            Trace.WriteLine("[ReserveTicketAsync] Бронирование завершено");
+        }
+
+        // Метод для отмены брони (аналог возврата билета, но без расчёта возврата)
+        private async Task CancelReservationAsync(Ticket reservation)
+        {
+            if (reservation == null || reservation.Status != TicketStatuses.Reserved)
+                return;
+            await _supabaseService.DeleteTicketAsync(reservation.Id);
         }
     }
 }

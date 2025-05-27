@@ -12,7 +12,7 @@ namespace AfishaUno.Services
         Task LogoutAsync();
         Task<List<User>> GetUsersAsync();
         Task<bool> RegisterAdminAsync(string email, string password, string fullName);
-        Task<User> CreateUserAsync(string email, string password, string fullName, string role);
+        Task<User> CreateUserAsync(string email, string? password, string fullName, string role);
         Task<List<Performance>> GetPerformancesAsync();
         Task<Performance> CreatePerformanceAsync(Performance performance);
         Task<List<Hall>> GetHallsAsync();
@@ -47,6 +47,7 @@ namespace AfishaUno.Services
         Task<List<Ticket>> GetTicketsByDateRangeAsync(DateTime startDate, DateTime endDate);
         Task<List<Schedule>> GetScheduleByDateRangeAsync(DateTime startDate, DateTime endDate);
         Task<List<Ticket>> GetTicketsByScheduleIdsAsync(List<string> scheduleIds);
+        
         /// <summary>
         /// Получает все билеты за указанный период времени
         /// </summary>
@@ -55,5 +56,9 @@ namespace AfishaUno.Services
         /// <param name="performanceIds">Опциональный список идентификаторов спектаклей для фильтрации</param>
         /// <returns>Список билетов за указанный период</returns>
         Task<List<Ticket>> GetTicketsForPeriodAsync(DateTime startDate, DateTime endDate, List<Guid>? performanceIds = null);
+        Task<User> UpdateUserAsync(User user);
+        Task DeleteUserAsync(Guid userId);
+        Task<User> AddUserAsync(string email, string password, string fullName, string role);
+        Task DeleteTicketAsync(Guid ticketId);
     }
 } 
